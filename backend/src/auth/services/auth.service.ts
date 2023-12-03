@@ -7,37 +7,36 @@ import { User } from '../schemas/user.schema';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../dto/login.dto';
-import { Payment } from '../../payments/schemas/payment.schema';
-import { PaymentsService } from '../../payments/services/payments.service';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { UpdateUsernameDto } from '../dto/update-username.dto';
+import { StripeService } from '../../payments/services/stripe.service';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @Inject(forwardRef(() => PaymentsService)) 
-    private readonly paymentsService: PaymentsService,
+  constructor( 
+    @Inject(forwardRef(() => StripeService)) 
+    private readonly stripeService: StripeService,
 
     @InjectModel(User.name)
     private userModel: Model<User>,
     private jwtService: JwtService,
+    //private stripeService: StripeService
   ){}
 
   // Signup
   async signUp(signUpDto: SignUpDto): Promise<{ token: string }> {
-    const { username, email, password } = signUpDto
-
+    
     const salt = 10;
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = await this.userModel.create({
-      username,
-      email,
+    const hashedPassword = await bcrypt.hash(signUpDto.password, salt);
+    const stripeCustomer = await this.stripeService.createCustomer(signUpDto.username, signUpDto.email);
+    const createdUser = await this.userModel.create({
+      ...signUpDto,
+      stripeCustomerId: stripeCustomer.id,
       password: hashedPassword
     })
 
     // generate a token
-    const token = this.jwtService.sign({ id: user._id })
-
+    const token = this.jwtService.sign({ id: createdUser._id })
     return { token };
   }
 
@@ -47,20 +46,12 @@ export class AuthService {
 
     const user = await this.userModel.findOne({ email })
 
-    // Incorrect Email
-    if (!user){
-      throw new UnauthorizedException('Invalid email or password')
-    }
-
-    const isPasswordMatched = await bcrypt.compare(password, user.password)
-
-    // Incorrect Password
-    if (!isPasswordMatched){
-      throw new UnauthorizedException('Invalid email or password')
+    //user.password = hashed password
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     const token = this.jwtService.sign({ id: user._id })
-
     return { token };
   }
 
@@ -96,7 +87,7 @@ export class AuthService {
   async deleteById(user: User){
 
     //Deleting user associated data
-    await this.paymentsService.deleteMany(user);
+    //await this.paymentsService.deleteMany(user);
 
     //Deleting user
     await this.userModel.findByIdAndDelete({ _id: user._id });

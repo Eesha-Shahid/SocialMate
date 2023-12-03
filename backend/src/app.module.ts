@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 // User-defined Modules
-import { PaymentsModule } from './payments/payments.module';
+import { StripeModule } from './payments/stripe.module';
 import { AuthModule } from './auth/auth.module';
 
 // Other Modules
@@ -14,8 +14,8 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     ConfigModule.forRoot(), 
     MongooseModule.forRoot(process.env.MONGO_URI, { dbName: 'sm_db',}),
-    PaymentsModule, 
     AuthModule, 
+    StripeModule
   ],
   controllers: [AppController],
   providers: [AppService],

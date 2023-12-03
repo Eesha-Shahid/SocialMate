@@ -21,6 +21,9 @@ export class User {
     userType: UserType;
 
     @Prop()
+    stripeCustomerId: string;
+
+    @Prop()
     facebookAccessToken: string;
 
     @Prop()

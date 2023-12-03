@@ -5,7 +5,7 @@ import { Roles } from '../roles.decorator';
 import { UserType } from '../../common/enums/users.enum';
 import { RolesAuthGuard } from '../roles-auth.guard';
 
-@Controller('social-auth')
+@Controller('connect')
 @UseGuards(RolesAuthGuard)
 export class SocialAuthController {
     constructor(

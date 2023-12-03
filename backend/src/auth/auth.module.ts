@@ -8,10 +8,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
-import { PaymentsModule } from '../payments/payments.module';
+import { StripeModule } from '../payments/stripe.module';
 import { SocialAuthService } from './services/social-auth.service';
 import { SocialAuthController } from './controllers/social-auth.controller';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { CardController } from './controllers/card.controller';
+import { PhotoController } from './controllers/photo.controller';
 
 @Module({
   imports: [
@@ -25,10 +27,10 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
       }),
     }),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-    forwardRef(() => PaymentsModule),
-    CloudinaryModule
+    forwardRef(() => StripeModule),
+    CloudinaryModule,
   ],
-  controllers: [AuthController, SocialAuthController],
+  controllers: [AuthController, SocialAuthController, PhotoController, CardController],
   providers: [AuthService, SocialAuthService, JwtStrategy],
   exports: [JwtStrategy, PassportModule]
 })
