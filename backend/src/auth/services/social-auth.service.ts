@@ -14,37 +14,6 @@ export class SocialAuthService {
         private readonly userModel: Model<User>
     ) {}
 
-    async connectTwitter(socialMediaCredentialsDto: SocialMediaCredentialsDto): Promise<SocialAccessToken> {
-
-        const apiKey = process.env.TWITTER_API_KEY;
-        const apiSecret = process.env.TWITTER_API_SECRET;
-        const accessTokenKey = process.env.TWITTER_TOKEN_KEY;
-        const accessTokenSecret = process.env.TWITTER_TOKEN_SECRET;
-    
-        const basicAuth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
-    
-        try {
-            const response = await axios.post(
-                'https://api.twitter.com/oauth/access_token',
-                `oauth_token=${accessTokenKey}&oauth_token_secret=${accessTokenSecret}`,
-                {
-                headers: {
-                    Authorization: `Basic ${basicAuth}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                },
-            );
-        
-            const platform = SocialMediaPlatform.TWITTER;
-            const accessToken = response.data.access_token;
-            return { platform, accessToken };
-        } 
-        catch (error) {
-            throw new Error('Failed to obtain Twitter access token');
-        }
-    }
-    
-
     async connectReddit(socialMediaCredentialsDto: SocialMediaCredentialsDto): Promise<SocialAccessToken> {
         const { username, password } = socialMediaCredentialsDto;
 

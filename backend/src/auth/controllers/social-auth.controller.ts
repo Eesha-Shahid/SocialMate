@@ -12,17 +12,6 @@ export class SocialAuthController {
         private readonly socialAuthService: SocialAuthService
     ) {}
 
-    @Post('twitter')
-    @Roles(UserType.Standard, UserType.Premium)
-    async saveTwitterAccessToken(
-        @Body() SocialMediaCredentialsDto: SocialMediaCredentialsDto,
-        @Req() req
-    ){
-        const socialAccessToken = await this.socialAuthService.connectTwitter(SocialMediaCredentialsDto);
-        await this.socialAuthService.saveAccessToken(req.user, socialAccessToken);
-        return { message: "Twitter Access Token Saved" };
-    }
-
     @Post('reddit')
     @Roles(UserType.Standard, UserType.Premium)
     async saveRedditAccessToken(

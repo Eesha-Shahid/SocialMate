@@ -11,6 +11,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { PaymentsModule } from '../payments/payments.module';
 import { SocialAuthService } from './services/social-auth.service';
 import { SocialAuthController } from './controllers/social-auth.controller';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SocialAuthController } from './controllers/social-auth.controller';
     }),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     forwardRef(() => PaymentsModule),
+    CloudinaryModule
   ],
   controllers: [AuthController, SocialAuthController],
   providers: [AuthService, SocialAuthService, JwtStrategy],

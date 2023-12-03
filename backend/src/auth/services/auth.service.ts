@@ -85,6 +85,13 @@ export class AuthService {
     return this.userModel.findByIdAndUpdate(userId, { username: newUsername }, { new: true });
   }  
 
+  async updateUserProfilePic(userId: string, profilePicUrl: string): Promise<void> {
+    return await this.userModel.findByIdAndUpdate(userId, { profilePic: profilePicUrl }, { new: true });
+  }
+
+  async removeUserProfilePic(userId: string): Promise<void> {
+    return await this.userModel.findByIdAndUpdate(userId, { profilePic: null }, { new: true });
+  }
   // Delete User
   async deleteById(user: User){
 

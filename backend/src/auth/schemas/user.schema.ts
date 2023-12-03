@@ -14,6 +14,9 @@ export class User {
     @Prop()
     password: string;
 
+    @Prop()
+    profilePic: string;
+
     @Prop({enum: Object.values(UserType), default: UserType.Standard})
     userType: UserType;
 
