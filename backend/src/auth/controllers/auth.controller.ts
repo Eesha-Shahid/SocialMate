@@ -21,9 +21,15 @@ export class AuthController {
     return this.authService.signUp(signUpDto);
   }
 
-  @Get('login')
+  @Post('login')
   login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
     return this.authService.login(loginDto);
+  }
+
+  @Get()
+  @Roles(UserType.Standard, UserType.Premium)
+  async viewProfile(@Req() req){
+    return await this.authService.findById(req.user.id);
   }
 
   @Patch('change-password')
@@ -41,8 +47,9 @@ export class AuthController {
       @Body() updateUsernameDto: UpdateUsernameDto,
       @Req() req,
   ): Promise<User> {
-      return await this.authService.updateUsername(req.user.id, updateUsernameDto);
+    return await this.authService.updateUsername(req.user.id, updateUsernameDto);
   }
+  
   @Delete('delete')
   @Roles(UserType.Standard, UserType.Premium)
   async delete(@Req() req) {

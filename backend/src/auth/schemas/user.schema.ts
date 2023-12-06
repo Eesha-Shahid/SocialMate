@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { UserType } from "../../common/enums/users.enum";
 
-@Schema()
+@Schema({ timestamps: true })
 export class User {
     [x: string]: any;
     
@@ -23,16 +23,16 @@ export class User {
     @Prop()
     stripeCustomerId: string;
 
-    @Prop()
+    @Prop({default: null})
     facebookAccessToken: string;
 
-    @Prop()
+    @Prop({default: null})
     instagramAccessToken: string;
 
-    @Prop()
+    @Prop({default: null})
     twitterAccessToken: string;
 
-    @Prop()
+    @Prop({default: null})
     redditAccessToken: string;
 }
 

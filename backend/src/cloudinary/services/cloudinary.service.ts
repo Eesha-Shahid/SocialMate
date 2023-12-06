@@ -20,4 +20,18 @@ export class CloudinaryService {
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
+
+  async removePicture(publicId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          console.log("Not Deleted")
+          reject(error);
+        } else {
+          console.log("Deleted")
+          resolve();
+        }
+      });
+    });
+  }
 }

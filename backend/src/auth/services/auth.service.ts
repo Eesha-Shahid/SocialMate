@@ -10,6 +10,7 @@ import { LoginDto } from '../dto/login.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { UpdateUsernameDto } from '../dto/update-username.dto';
 import { StripeService } from '../../payments/services/stripe.service';
+import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectModel(User.name)
     private userModel: Model<User>,
     private jwtService: JwtService,
+    private cloudinaryService: CloudinaryService,
     //private stripeService: StripeService
   ){}
 
@@ -43,7 +45,6 @@ export class AuthService {
   // Login
   async login(loginDto: LoginDto): Promise<{ token: string }> {
     const { email, password } = loginDto;
-
     const user = await this.userModel.findOne({ email })
 
     //user.password = hashed password
@@ -53,6 +54,10 @@ export class AuthService {
 
     const token = this.jwtService.sign({ id: user._id })
     return { token };
+  }
+
+  async findById(userId: string): Promise<User | null>{
+    return await this.userModel.findById(userId);
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<User | null> {
@@ -81,6 +86,8 @@ export class AuthService {
   }
 
   async removeUserProfilePic(userId: string): Promise<void> {
+    // const user = await this.userModel.findById(userId);
+    // await this.cloudinaryService.removePicture(user.profilePic);
     return await this.userModel.findByIdAndUpdate(userId, { profilePic: null }, { new: true });
   }
   // Delete User

@@ -6,6 +6,7 @@ import { SocialMediaPlatform } from '../../common/enums/platforms.enum';
 import axios from 'axios';
 import { SocialAccessToken } from '../dto/social-access-token.dto';
 import { SocialMediaCredentialsDto } from '../dto/social-media-credentials.dto';
+import { PlatformDto } from '../dto/platform.dto';
 
 @Injectable()
 export class SocialAuthService {
@@ -33,9 +34,9 @@ export class SocialAuthService {
                 }
             );
         
-          const platform = SocialMediaPlatform.REDDIT
-          const accessToken = response.data.access_token;
-          return { platform, accessToken };
+            const platform = SocialMediaPlatform.REDDIT
+            const accessToken = response.data.access_token;
+            return { platform, accessToken };
 
         } catch (error) {
           throw new Error('Failed to obtain Reddit access token');
@@ -69,5 +70,79 @@ export class SocialAuthService {
         }
 
         await user.save();
+        console.log("Reddit: Saved Access Token")
     }
+
+    async viewRedditProfile(accessToken: string): Promise<{}>{
+        try {
+            const response = await axios.get('https://oauth.reddit.com/api/v1/me',
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            console.log("Reddit: Fetched Profile")
+            return response.data
+        } catch (error) {
+          throw new Error('Failed to obtain Reddit Data');
+        }
+    }
+
+    async viewSocialProfile(user: User, platformDto: PlatformDto): Promise<{}>{
+        const userr = await this.userModel.findById(user._id);
+
+        if (!userr) {
+            throw new Error('User not found');
+        }
+
+        const {platform} = platformDto;
+
+        switch (platform) {
+            
+            case SocialMediaPlatform.FACEBOOK:
+                // return await this.viewRedditProfile(accessToken);
+            case SocialMediaPlatform.INSTAGRAM:
+                // return await this.viewRedditProfile(accessToken);
+                break
+            case SocialMediaPlatform.TWITTER:
+                // return await this.viewRedditProfile(accessToken);
+                break
+            case SocialMediaPlatform.REDDIT:
+                console.log("Reddit: Found Access Token")
+                return await this.viewRedditProfile(userr.redditAccessToken);
+            default:
+                throw new Error('Invalid platform');
+        }
+    }
+
+    async deleteAccessToken(user: User, platformDto: PlatformDto): Promise<User>{
+        const userr = await this.userModel.findById(user._id);
+        
+        if (!userr) {
+            throw new Error('User not found');
+        }
+        
+        const {platform} = platformDto;
+
+        switch (platform) {
+            
+            case SocialMediaPlatform.FACEBOOK:
+                user.facebookAccessToken = null;
+                break;
+            case SocialMediaPlatform.INSTAGRAM:
+                user.instagramAccessToken = null;
+                break;
+            case SocialMediaPlatform.TWITTER:
+                user.twitterAccessToken = null;
+                break;
+            case SocialMediaPlatform.REDDIT:
+                user.redditAccessToken = null;
+                break;
+            default:
+                throw new Error('Invalid platform');
+        }
+
+        return await user.save();
+    } 
 }
