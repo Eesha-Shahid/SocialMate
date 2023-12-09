@@ -1,84 +1,43 @@
 // components/Register.tsx
-import { useState } from 'react';
-import AuthService from '../services/AuthService';
-import { useRouter } from 'next/navigation';
+import SignUpHandler from '@/handlers/SignupHandlers';
+import { TSignup } from '@/types/User';
+import { Field, Form, Formik, FormikHelpers } from 'formik';
 
 const RegisterForm = () => {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleRegister = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    try {
-      const data = await AuthService.register(formData.username, formData.email, formData.password);
-      console.log('Registration successful:', data);
-      const loginData = await AuthService.login(formData.email, formData.password);
-      localStorage.setItem('token', loginData.token);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Registration error:', (error as Error).message);
-    }
-  };
-
-  const handleSignUpWithGoogle = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-  };
+  const {handleSignUpWithGoogle, handleSignIn, handleRegisterSubmit} = SignUpHandler();
+  const googleIcon = "https://cdn.pixabay.com/photo/2021/05/24/09/15/google-logo-6278331_640.png"
 
   return (
-    <div>
-      <form>
-        <label>
-          Username:
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Email:
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br />
-        <button type="button" onClick={handleRegister}>
-          Register
-        </button>
-      </form>
-      <button type="button" onClick={handleSignUpWithGoogle}>Sign In with Google</button>
-      <p onClick={() => router.push('/login')}>Already have an account?{' '}Sign In</p>
+    <div style={{ maxWidth: '300px', margin: 'auto', padding: '20px', border: '1px solid #ccc', borderRadius: '5px' }}>
+      <Formik
+        initialValues={{ username: "", email: "", password: "",}}
+        onSubmit={( values: TSignup, { setSubmitting }: FormikHelpers<TSignup>) => {
+          setTimeout(() => {
+            handleRegisterSubmit(values);
+            setSubmitting(false);
+          }, 500);
+        }}
+      >
+        <Form style={{ display: 'flex', flexDirection: 'column', padding: '10px' }}>
+          <label htmlFor='username' style={{ textAlign: 'left', marginBottom: '5px' }}>Username:</label>
+          <Field id="username" type="text" name="username" placeholder='Enter username' required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
+          <br />
+          <label htmlFor='email' style={{ textAlign: 'left', marginBottom: '5px' }}>Email:</label>
+          <Field id="email" type="email" name="email" placeholder="Enter email" required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
+          <br />
+          <label htmlFor='password' style={{ textAlign: 'left', marginBottom: '5px' }}>Password:</label>
+          <Field id="password" type="password" name="password" required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
+          <br />
+          <button type="submit" style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Register</button>
+        </Form>
+        
+      </Formik>
+
+      <button type="button" onClick={handleSignUpWithGoogle} style={{ marginTop: '10px', padding: '10px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto', width: '95%' }}>
+        <img src={googleIcon} alt="Google Icon" style={{  width: '20px', height: '20px', marginRight: '10px' }} />
+        Sign Up with Google
+      </button>
+      <p onClick={handleSignIn} style={{ marginTop: '10px', cursor: 'pointer'}}>Already have an account?{' '}<span style={{color: '#4285F4'}}>Sign In</span></p>
     </div>
   );
 };

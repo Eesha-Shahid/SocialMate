@@ -1,4 +1,4 @@
-export interface RedditUser{
+export type RedditUser = {
     is_employee: boolean;
 	seen_layout_switch: boolean;
 	has_visited_new_profile: boolean;
@@ -143,4 +143,31 @@ export interface RedditUser{
 	has_subscribed: boolean;
 	linked_identities: any[];
 	seen_subreddit_chat_ftux: boolean;
+}
+
+export type RedditKarma = {
+	kind: string;
+	data: string[];
+}
+
+export type RedditPost = {
+	sr: string;
+	title: string;
+	text: string;
+	url: string;
+	flairName: string;
+	flairId: string;
+}
+
+export type Flair = {
+    id: string;
+    text: string;
+    emojiUrl: string;
+	background_color: string;
+}
+
+export type Subreddt = {
+	id: string;
+	display_name: string;
+	public_description: string;
 }

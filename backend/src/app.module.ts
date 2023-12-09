@@ -9,13 +9,19 @@ import { AuthModule } from './auth/auth.module';
 // Other Modules
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { NestjsFormDataModule } from 'nestjs-form-data';
+import { MailModule } from './mail/mail.module';
+import { CardModule } from './card/card.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(), 
     MongooseModule.forRoot(process.env.MONGO_URI, { dbName: 'sm_db',}),
     AuthModule, 
-    StripeModule
+    StripeModule,
+    NestjsFormDataModule,
+    MailModule,
+    CardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

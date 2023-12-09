@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { UserType } from "../../common/enums/users.enum";
+import { Card } from "src/card/schemas/card.schema";
 
 @Schema({ timestamps: true })
 export class User {
@@ -34,6 +35,9 @@ export class User {
 
     @Prop({default: null})
     redditAccessToken: string;
+
+    @Prop({ type: [Card], default:[] })
+    cards: Card[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

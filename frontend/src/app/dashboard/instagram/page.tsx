@@ -4,10 +4,12 @@ import Sidebar from '@/components/Sidebar';
 
 const Instagram = () => {
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <Sidebar/>
-      <AccountsBar />
-      <h1>Instagram</h1>
+      <div style={{ padding: '20px' }}>
+        <h1>Instagram Profile</h1>
+        <AccountsBar />
+      </div>
     </div>
   );
 };

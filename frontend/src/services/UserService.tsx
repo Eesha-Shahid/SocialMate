@@ -1,15 +1,20 @@
-import { RedditUser } from "@/types/RedditUser";
-import { User } from "@/types/User";
+import { CardInfomration, User } from "@/types/User";
 import axios from "axios";
+import { getCookie } from "cookies-next";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 class UserService {
-  async fetchUserProfile(token: string | null): Promise<User> {
+  async fetchUserProfile(): Promise<User> {
       try {
+        const token = getCookie('token'); 
         const response = await fetch(`${API_URL}/auth`, {
+          
           headers: {
             Authorization: `Bearer ${token}`,
+          },
+          next: {
+            revalidate: 20, 
           },
         });
     
@@ -24,19 +29,16 @@ class UserService {
       }
   }
 
-  async removeProfilePicture(token: string | null): Promise<User> {
+  async removeProfilePicture(): Promise<User> {
     try {
+      const token = getCookie('token'); 
+
       const response = await fetch(`${API_URL}/photo/remove`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove profile picture');
-      }
-
       return await response.json();
     } catch (error) {
       console.error('Error removing profile picture:', (error as Error).message);
@@ -44,8 +46,9 @@ class UserService {
     }
   }
 
-  async updateProfilePicture(file: File, token: string | null): Promise<User> {
+  async updateProfilePicture(file: File): Promise<User> {
     try {
+      const token = getCookie('token'); 
       const formData = new FormData();
       formData.append('file', file);
 
@@ -68,23 +71,38 @@ class UserService {
     }
   }
 
-  async fetchRedditProfile(token: string | null): Promise<RedditUser>{
+  async getCardInformation(): Promise<CardInfomration[] | []>{
     try {
-      const response = await axios.post(
-        `${API_URL}/social-auth/profile`, 
+      const token = getCookie('token');
+      const response = await axios.get(`${API_URL}/auth/cards`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error('Fetching cards failed');
+    }
+  }  
+
+  async addCardInformation(cardNumber: string, expMonth: number, expYear: number, cvc: string){
+    try {
+      const token = getCookie('token'); 
+      const response = await axios.patch(`${API_URL}/auth/add-card`, 
       {
-        platform: "reddit"
+        cardNumber,
+        expMonth,
+        expYear,
+        cvc
       },
       {
         headers: {
           Authorization: `Bearer ${token}`,
-        }, 
+        },
       });
-      return await response.data;
-
+      return response.data;
     } catch (error) {
-      console.error('Error fetching reddit profile:', (error as Error).message);
-      throw error; 
+      throw new Error('Adding Card failed');
     }
   }
 }

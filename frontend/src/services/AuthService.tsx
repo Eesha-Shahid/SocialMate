@@ -1,16 +1,14 @@
 // AuthService.ts
 import { User } from '@/types/User';
 import axios from 'axios';
+import { getCookie } from 'cookies-next';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'; // Default to a local URL
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'; 
 
 class AuthService {
   async login(email: string, password: string) {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password, });
       return response.data;
     } catch (error) {
       throw new Error('Sign-in failed');
@@ -30,8 +28,9 @@ class AuthService {
     }
   }
 
-  async resetPassword(currentPassword: string, newPassword: string, confirmPassword: string, token: string | null) {
+  async resetPassword(currentPassword: string, newPassword: string, confirmPassword: string) {
     try {
+      const token = getCookie('token'); 
       const response = await axios.patch(
         `${API_URL}/auth/change-password`,
         {
@@ -51,8 +50,34 @@ class AuthService {
     }
   }
 
-  async updateUsername(username: string, token: string | null): Promise<User> {
+  async resetForgotPassword(email: string, newPassword: string, confirmPassword: string) {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/auth/change-forgot-password`,
+          {
+            email,
+            newPassword,
+            confirmPassword
+          }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error('Forgot password Reset failed');
+    }
+  }
+
+  async forgotPassword(email: string){
     try{
+      const response = await axios.post(`${API_URL}/auth/send-forgot-email`, { email });
+      return response.data;
+    } catch (error) {
+      throw new Error('Email Sending Failed');
+    }
+  }
+
+  async updateUsername(username: string): Promise<User> {
+    try{
+      const token = getCookie('token'); 
       const response = await axios.patch(
         `${API_URL}/auth/update-username`, 
       { 
@@ -71,8 +96,10 @@ class AuthService {
     }
   }
 
-  async deleteProfile(token: string | null): Promise<{ message: string }> {
+  async deleteProfile(): Promise<{ message: string }> {
     try {
+      const token = getCookie('token'); 
+
       const response = await fetch(`${API_URL}/auth/delete`, {
         method: 'DELETE',
         headers: {
@@ -87,46 +114,6 @@ class AuthService {
       return await response.json();
     } catch (error) {
       console.error('Error deleting profile:', (error as Error).message);
-      throw error;
-    }
-  }
-
-  async connectToReddit(username: string, password: string, token: string | null): Promise<User> {
-    try {
-      const response = await axios.post(
-        `${API_URL}/social-auth/reddit`, 
-      { 
-        username: username,
-        password: password
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return await response.data
-    } 
-    catch (error) {
-      console.error('Error logging in to Reddit:', (error as Error).message);
-      throw error;
-    }
-  }
-
-  async logoutSocial(platform: string, token: string | null): Promise<User> {
-    try{
-      const response = await axios.post(
-        `${API_URL}/social-auth/logout`, 
-      {
-        platform
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }, 
-      });
-      return await response.data
-    }catch(error){
-      console.error('Error logging out:', (error as Error).message);
       throw error;
     }
   }

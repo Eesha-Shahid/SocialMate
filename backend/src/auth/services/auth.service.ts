@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { SignUpDto } from '../dto/signup.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,19 +10,27 @@ import { LoginDto } from '../dto/login.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { UpdateUsernameDto } from '../dto/update-username.dto';
 import { StripeService } from '../../payments/services/stripe.service';
-import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
+import { MailService } from 'src/mail/services/mail.service';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { EmailDto } from '../dto/email.dto';
+import { CardService } from 'src/card/services/card.service';
+import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
+import { Card } from 'src/card/schemas/card.schema';
+import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'crypto';
+import { promisify } from 'util';
 
 @Injectable()
 export class AuthService {
   constructor( 
     @Inject(forwardRef(() => StripeService)) 
     private readonly stripeService: StripeService,
+    
+    private mailService: MailService,
+    private cardService: CardService,
 
     @InjectModel(User.name)
     private userModel: Model<User>,
     private jwtService: JwtService,
-    private cloudinaryService: CloudinaryService,
-    //private stripeService: StripeService
   ){}
 
   // Signup
@@ -37,42 +45,64 @@ export class AuthService {
       password: hashedPassword
     })
 
-    // generate a token
     const token = this.jwtService.sign({ id: createdUser._id })
     return { token };
   }
 
   // Login
-  async login(loginDto: LoginDto): Promise<{ token: string }> {
+  async login(loginDto: LoginDto): Promise<{ user: User, token: string }> {
     const { email, password } = loginDto;
     const user = await this.userModel.findOne({ email })
-
-    //user.password = hashed password
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const token = this.jwtService.sign({ id: user._id })
-    return { token };
+    return { user, token };
   }
 
   async findById(userId: string): Promise<User | null>{
     return await this.userModel.findById(userId);
   }
 
+  async sendResetEmail(emailDto: EmailDto){
+    const {email} = emailDto
+    const user = await this.userModel.findOne({ email: email })
+    if (!user){
+      throw new UnauthorizedException('Invalid email');
+    }
+    else{
+      const resetLink = `http://localhost:3000/reset?email=${encodeURIComponent(user.email)}`;
+      var mailOptions = {
+          transporterName: 'gmail',
+          to: user.email,
+          subject: 'SocialMate | Email Verification',
+          template: './reset', 
+          context: { 
+              name: user.username,
+              url: resetLink
+          }
+      }
+      await this.mailService.setTransport();
+      return await this.mailService.sendEmail(mailOptions)
+    }
+  }
+
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<User | null> {
     const { currentPassword, newPassword } = changePasswordDto;
     const user = await this.userModel.findById(userId);
-
-    // Check if the current password matches the user's stored password
     if (!(await bcrypt.compare(currentPassword, user.password))) {
         throw new UnauthorizedException('Current password is incorrect');
     }
 
-    // Hash and update the new password
     user.password = await bcrypt.hash(newPassword, 10);;
+    return await user.save();
+  }
 
-    // Save the updated user document
+  async changeForgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<User | null> {
+    const { email, newPassword } = forgotPasswordDto;
+    const user = await this.userModel.findOne({ email: email })
+    user.password = await bcrypt.hash(newPassword, 10);;
     return await user.save();
   }
 
@@ -98,5 +128,58 @@ export class AuthService {
 
     //Deleting user
     await this.userModel.findByIdAndDelete({ _id: user._id });
+  }
+
+  async viewCards(userId: string): Promise<Card[] | null> {
+    try {
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+            console.error('User not found');
+            return null;
+        }
+        const cards = user.cards;
+        return cards;
+    } catch (error) {
+        console.error('Error viewing cards:', error);
+        return null;
+    }
+  }
+
+  async addCard(userId: string, addCardDto): Promise<User | null> {
+    try {
+      const iv = randomBytes(16);
+      const password = 'socialmate14';
+      const key = (await promisify(scrypt)(password, 'salt', 32)) as Buffer;
+      const cipher = createCipheriv('aes-256-ctr', key, iv);
+      const encryptedCardNumber = Buffer.concat([
+        cipher.update(addCardDto.cardNumber),
+        cipher.final(),
+      ]);
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        { $push: { cards: { ...addCardDto, cardNumber: encryptedCardNumber } } },
+        { new: true },
+      );
+      return updatedUser;
+    } catch (error) {
+      console.error('Error adding card:', error);
+      return null;
+    }
+  }
+
+  async deleteCard(userId: string, deleteCardDto: DeleteCardDto): Promise<User | null> {
+    try {
+      const { cardId } = deleteCardDto;
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        { $pull: { cards: { _id: cardId } } },
+        { new: true },
+      );
+  
+      return updatedUser;
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      return null;
+    }
   }
 }

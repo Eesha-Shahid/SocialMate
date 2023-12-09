@@ -4,10 +4,12 @@ import Sidebar from '@/components/Sidebar';
 
 const Dashboard = () => {
   return (
-    <div>
-      <Sidebar/>
-      <AccountsBar />
-      <h1>Dashboard</h1>
+    <div style={{ display: 'flex' }}>
+      <Sidebar />
+      <div style={{ padding: '20px' }}>
+        <h1>Dashboard</h1>
+        <AccountsBar/>
+      </div>
     </div>
   );
 };

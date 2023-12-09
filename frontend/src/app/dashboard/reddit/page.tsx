@@ -2,85 +2,100 @@
 // Other
 import { useEffect, useState } from 'react';
 import {useRouter} from 'next/navigation';
+import { getCookie } from 'cookies-next';
 
 // Components
 import AccountsBar from '@/components/AccountsBar';
 import Sidebar from '@/components/Sidebar';
 
 // Interfaces
-import { RedditUser } from '@/types/RedditUser';
+import { RedditKarma, RedditUser } from '@/types/RedditUser';
 
 // Services
-import UserService from '@/services/UserService';
-import Link from 'next/link';
+import RedditProfile from '@/components/RedditProfile';
+import RedditService from '@/services/RedditService';
+import useUser from '@/hooks/useUser';
+
 
 const Reddit = () => {
+  const { user, setUser } = useUser();
   const router = useRouter();
   const [redditUser, setRedditUser] = useState<RedditUser | null>(null);
+  const [redditKarma, setRedditKarma] = useState<RedditKarma | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/');
-    } else {
+    if (user?.redditAccessToken != null){
       fetchRedditProfile();
+      fetchRedditKarma();
     }
   }, []);
-
+  
   const fetchRedditProfile = async() => {
     try {
-      const token = localStorage.getItem('token');
-      const fetchedUser = await UserService.fetchRedditProfile(token);
-      setRedditUser(fetchedUser);
+      const data = await RedditService.fetchProfile();
+      setRedditUser(data);
+    } catch (error) {
+      console.error('Error fetching reddit profile:', (error as Error).message);
+    }
+  };
+
+  const fetchRedditKarma = async() => {
+    try {
+      const data = await RedditService.fetchRedditKarma();
+      setRedditKarma(data);
     } catch (error) {
       console.error('Error fetching user profile:', (error as Error).message);
     }
   };
 
   return (
-    <div>
-      <Sidebar/>
-      <AccountsBar />
-      <h1>Reddit</h1>
-      {redditUser && (
-        <>
-          <p><strong>Name: </strong>{redditUser.name}</p>
-          <p><strong>Display Name: </strong>{redditUser.subreddit.display_name}</p>
-          <p><strong>Display Name (Prefixed): </strong>{redditUser.subreddit.display_name_prefixed}</p>
-          <p><strong>Verified: </strong>{redditUser.verified}</p>
-          <Link href={`https://www.reddit.com${redditUser.subreddit.url}`} target='_blank'>View Profile</Link>
-          <p><strong>Header Image</strong></p>
-          {redditUser.subreddit.header_img ? (
-            <img src={redditUser.subreddit.header_img} alt="Header" style={{ maxWidth: '200px' }} />
-          ) : (
-            <p>No Header available</p>
-          )}
-          <br />
-          <p><strong>Title: </strong>{redditUser.subreddit.title}</p>
-          <p><strong>Description: </strong>{redditUser.subreddit.description}</p>
-          <p><strong>Public Description:</strong>{redditUser.subreddit.public_description}</p>
-          <p><strong>Coins: </strong>{redditUser.coins}</p>
-          <p><strong>Icon</strong></p>
-          {redditUser.subreddit.icon_img ? (
-            <img src={redditUser.subreddit.icon_img} alt="Icon" style={{ maxWidth: '200px' }} />
-          ) : (
-            <p>No Icon available</p>
-          )}
-          <br />
-          <p><strong>Subscribers: </strong>{redditUser.subreddit.subscribers}</p>
-          {/* <p><strong>Gold Subscription: </strong>{redditUser.has_gold_subscription}</p>
-          <p><strong>Gold Credits: </strong>{redditUser.gold_creddits}</p> */}
-          <p><strong>Friends: </strong>{redditUser.num_friends}</p>
-          {/* <p><strong>Premium Subscription: </strong>{redditUser.has_subscribed_to_premium}</p> */}
-          <p><strong>Total Karma: </strong>{redditUser.total_karma}</p>
-          <p><strong>Awarder Karma: </strong>{redditUser.awarder_karma}</p>
-          <p><strong>Awardee Karma: </strong>{redditUser.awardee_karma}</p>
-          <p><strong>Comment Karma: </strong>{redditUser.comment_karma}</p>
-        </>
-      )}
+    <div style={{ display: 'flex' }}>
+      <Sidebar />
+      <div style={{ padding: '20px' }}>
+        <h1>Reddit Profile</h1>
+        <AccountsBar />
+        {redditUser != null ? (
+          <>
+          <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '10px' }}>
+            <button style={buttonStyle} onClick={() => router.push('/dashboard/reddit/popular/subreddits')}>View Popular Subreddits</button>
+            <button style={buttonStyle} onClick={() => router.push('/dashboard/reddit/posts')}>View Posts</button>
+            <button style={buttonStyle} onClick={() => router.push('/dashboard/reddit/create')}>Create Post</button>
+          </div>
+          <RedditProfile redditUser={redditUser} />
+          </>
+        ) : (
+          <p>No connected account</p>
+        )}
+        
+        {/* {redditKarma && (
+          <>
+            <p>
+              <strong>Karma Kind: </strong>
+              {redditKarma.kind}
+            </p>
+            <p>
+              <strong>Karma Data: </strong>
+              {redditKarma.data}
+            </p>
+          </>
+        )} */}
+      </div>
     </div>
   );
+};
+
+const buttonStyle: React.CSSProperties = {
+  backgroundColor: 'black',
+  border: 'none',
+  color: 'white',
+  padding: '10px 20px',
+  textAlign: 'center',
+  textDecoration: 'none',
+  display: 'inline-block',
+  fontSize: '16px',
+  margin: '4px 2px',
+  cursor: 'pointer',
+  borderRadius: '20px',
 };
 
 export default Reddit;

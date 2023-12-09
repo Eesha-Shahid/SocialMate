@@ -1,67 +1,63 @@
 'use client'
+import React from 'react';
+import { TSocialLogin } from '@/types/User';
+import { Field, Form, Formik, FormikHelpers } from 'formik';
 
-import AuthService from '@/services/AuthService';
-import {useRouter} from 'next/navigation';
-import React, { useState } from 'react';
+import UserHandler from '@/handlers/UserHandlers';
 
 const SocialAuthForm = () => {
-    const router = useRouter();
-    const [credentials, setCredentials] = useState({
-        username: '',
-        password: '',
-    });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setCredentials((prevCredentials) => ({
-          ...prevCredentials,
-          [name]: value,
-        }));
-    };
-
-    const handleSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem('token')
-            const data = await AuthService.connectToReddit(credentials.username, credentials.password, token);
-            console.log('Sign-in successful:', data);
-            router.push('/profile');
-        } 
-        catch (error) {
-            console.error('Sign-in error:', (error as Error).message);
-        }
-    }
+    const {handleSocialSignIn} = UserHandler();
 
     return (
         <div>
-        <h2>Login</h2>
-        <form>
-            <label>
-            Username:
-            <input
-                type="text"
-                name="username"
-                value={credentials.username}
-                onChange={handleChange}
-                required
-            />
-            </label>
-            <br />
-            <label>
-            Password:
-            <input
-                type="password"
-                name="password"
-                value={credentials.password}
-                onChange={handleChange}
-                required
-            />
-            </label>
-            <br />
-            <button onClick={handleSignIn} type="submit">Login</button>
-        </form>
+        <h2>Social Login</h2>
+        <Formik
+            initialValues={{ username: "", password: "",}}
+            onSubmit={( values: TSocialLogin, { setSubmitting }: FormikHelpers<TSocialLogin>) => {
+            setTimeout(() => {
+                handleSocialSignIn(values);
+                setSubmitting(false);
+            }, 500);
+            }}
+        >
+            <Form>
+                <label htmlFor='username'>Username</label>
+                <Field style={fieldStyles} id="username" type="text" name="username" placeholder='Enter username' required/>
+                <br />
+                <label htmlFor='password'>Password</label>
+                <Field style={fieldStyles} id="password" type="password" name="password" required/>
+                <br />
+                <button style={buttonStyle} type="submit">Login</button>
+            </Form>
+            
+        </Formik>
         </div>
     );
+};
+
+const fieldStyles = {
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '5px',
+    paddingRight:'120px',
+    margin: '8px 0',
+    minHeight: '30px', 
+    display: 'flex',
+    alignItems: 'center',
+};
+
+const buttonStyle: React.CSSProperties = {
+    backgroundColor: 'black',
+    border: 'none',
+    color: 'white',
+    padding: '10px 20px',
+    textAlign: 'center',
+    textDecoration: 'none',
+    display: 'inline-block',
+    fontSize: '16px',
+    margin: '4px 2px',
+    cursor: 'pointer',
+    borderRadius: '20px',
 };
 
 export default SocialAuthForm;

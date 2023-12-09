@@ -7,7 +7,9 @@ import { User } from '../types/User';
 
 // Services
 import UserService from '@/services/UserService';
-import AuthService from '@/services/AuthService';
+
+// Handlers
+import UserHandler from '@/handlers/UserHandlers';
 
 interface UserProfileProps {
   user: User;
@@ -16,17 +18,16 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
 
   const router = useRouter();
+  const facebookIcon = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Facebook_icon.svg/2048px-Facebook_icon.svg.png";
+  const instaIcon = "https://p7.hiclipart.com/preview/145/243/586/logo-computer-icons-clip-art-instagram-layout.jpg";
+  const twitterIcon = "https://freelogopng.com/images/all_img/1690643640twitter-x-icon-png.png";
+  const redditIcon = "https://toppng.com/uploads/preview/reddit-icon-reddit-logo-transparent-115628752708pqmsy4kgm.png";
+
+  const defaultPic = "https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg"
+  const { handleRemovePicture, handleSocialLogout } = UserHandler();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleRemovePicture = async() => {
-    try {
-      const token = localStorage.getItem('token');
-      await UserService.removeProfilePicture(token);
-      window.location.reload();
-    } catch (error) {
-      console.error('Error removing profle pic', (error as Error).message);
-    }
-  }
+  const { handleDelete } = UserHandler();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
@@ -37,81 +38,128 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
 
   const handleUpdatePicture = async() => {
     try {
-      const token = localStorage.getItem('token');
       if (selectedFile != null){
-        await UserService.updateProfilePicture(selectedFile, token);
+        await UserService.updateProfilePicture(selectedFile);
       }
       window.location.reload();
     } catch (error) {
-      console.error('Error removing profle pic', (error as Error).message);
+      console.error('Error updating profle pic', (error as Error).message);
     }
   }
 
   const navigateTo = (platform: string) => {
-    // router.push(`/profile/connect/${platform}`);
     router.push(`/profile/connect/`);
   };
 
-  const handleLogout = async(platform: string) => {
-    try {
-      const token = localStorage.getItem('token');
-      await AuthService.logoutSocial(platform, token)
-      router.push(`/profile`);
-    } catch (error) {
-      console.error('Error logging out: ', (error as Error).message);
-    }
-  };
-
   return (
-    <div>
-      {/* Profile Picture */}
-      <p><strong>Profile Picture</strong></p>
-      {user.profilePic ? (
-        <img src={user.profilePic} alt="Profile" style={{ maxWidth: '200px' }} />
-      ) : (
-        <p>No profile picture available</p>
-      )}
-      <br />
-      <input type="file" accept="image/*" onChange={handleFileChange} />
-      <br />
-      <button onClick={handleUpdatePicture}>Update Profile Picture</button>
-      <button onClick={handleRemovePicture}>Remove Profile Picture</button>
-      
-      {/* Basic Info */}
-      <p><strong>Basic Info</strong></p>
-      <p><strong>Username:</strong> {user.username}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Type:</strong> {user.userType}</p>
-      <p><strong>Created on: </strong>{user.createdAt}</p>
-      <p><strong>Updated on: </strong>{user.updatedAt}</p>
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+  
+      {/* Basic Info and Social Integrations */}
+      <div>
+        {/* Profile Picture */}
+        <div style={{ marginRight: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ borderRadius: '50%', overflow: 'hidden', width: '200px', height: '200px' }}>
+              {user.profilePic ? 
+                (<img src={user.profilePic} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', justifyContent:'center' }} />) : 
+                (<img src={defaultPic} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+              }
+            </div>
+            <br />
+            <input type="file" accept="image/*" onChange={handleFileChange}/>
+          </div>
+          <br />
+          <button style={buttonStyle} onClick={handleUpdatePicture}>Update Profile Picture</button>
+          <button style={buttonStyle} onClick={handleRemovePicture}>Remove Profile Picture</button>
+        </div>
+        
+        <div style={{ marginRight: '20px' }}>
+          <p><strong>Username</strong> <span style={fieldStyles}>{user.username}</span></p>
+          <p><strong>Email</strong> <span style={fieldStyles}>{user.email}</span></p>
+          <p><strong>Type</strong> <span style={fieldStyles}>{user.userType}</span></p>
+          <p><strong>Created on </strong><span style={fieldStyles}>{user.createdAt}</span></p>
+          <p><strong>Last Updated </strong><span style={fieldStyles}>{user.updatedAt}</span></p>
+        </div>
 
-      {/* Social Integrations */}
-      <p><strong>Social Integrations</strong></p>
-      <p><strong>Facebook: </strong>
-        {user.facebookAccessToken ? 
-        (<><button onClick={() => handleLogout('facebook')}>Logout</button></>) : 
-        (<button onClick={() => navigateTo('facebook')}>Connect</button>)}
-      </p>
+        <button style={buttonStyle} onClick={() => router.push('/profile/edit')}>Edit Profile</button>
+        <button style={buttonStyle} onClick={() => router.push('/profile/reset')}>Change Password</button>
+        <button style={{ ...buttonStyle, ...deleteStyle }}  onClick={handleDelete}>Delete Profile</button>
 
-      <p><strong>Instagram: </strong>
-        {user.instagramAccessToken ? 
-        (<><button onClick={() => handleLogout('instagram')}>Logout</button></>) : 
-        (<button onClick={() => navigateTo('instagram')}>Connect</button>)}
-      </p>
+        {/* Social Integrations */}
+        <div style={{ display: 'flex', flexDirection: 'row', marginTop: '10px' }}>
+          {/* Facebook */}
+          {user.facebookAccessToken ? 
+            (<><button style={socialButton} onClick={() => handleSocialLogout('facebook')}>
+              <img src={facebookIcon} alt="Facebook" style={{ width: '20px', marginRight: '5px' }} />Logout</button></>) : 
+            (<button style={socialButton} onClick={() => navigateTo('facebook')}>
+              <img src={facebookIcon} alt="Facebook" style={{ width: '20px', marginRight: '5px' }} />Connect</button>)}
 
-      <p><strong>Twitter: </strong>
-        {user.twitterAccessToken ? 
-        (<><button onClick={() => handleLogout('twitter')}>Logout</button></>) : 
-        (<button onClick={() => navigateTo('twitter')}>Connect</button>)}
-      </p>
 
-      <p><strong>Reddit: </strong>
-        {user.redditAccessToken ? 
-        (<><button onClick={() => handleLogout('reddit')}>Logout</button></>) : 
-        (<button onClick={() => navigateTo('reddit')}>Connect</button>)}
-      </p>
+          {/* Instagram */}
+          {user.instagramAccessToken ? 
+            (<><button style={socialButton} onClick={() => handleSocialLogout('instagram')}>
+              <img src={instaIcon} alt="Instagram" style={{ width: '20px', marginRight: '5px' }} />Logout</button></>) : 
+            (<button style={socialButton} onClick={() => navigateTo('instagram')}>
+              <img src={instaIcon} alt="Instagram" style={{ width: '20px', marginRight: '5px' }} />Connect</button>)}
+
+          {/* Twitter */}
+          {user.twitterAccessToken ? 
+            (<><button style={socialButton} onClick={() => handleSocialLogout('twitter')}>
+              <img src={twitterIcon} alt="Twitter" style={{ width: '20px', marginRight: '5px' }} />Logout</button></>) : 
+            (<button style={socialButton} onClick={() => navigateTo('twitter')}>
+              <img src={twitterIcon} alt="Twitter" style={{ width: '20px', marginRight: '5px' }} />Connect</button>)}
+
+          {/* Reddit */}
+          {user.redditAccessToken ? 
+            (<><button style={socialButton} onClick={() => handleSocialLogout('reddit')}>
+              <img src={redditIcon} alt="Reddit" style={{ width: '20px', marginRight: '5px' }} />Logout</button></>) : 
+            (<button style={socialButton} onClick={() => navigateTo('reddit')}>
+              <img src={redditIcon} alt="Reddit" style={{ width: '20px', marginRight: '5px' }} />Connect</button>)}
+        </div>
+      </div>
+
     </div>
   );
+};
+
+const fieldStyles = {
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  padding: '5px',
+  margin: '8px 0',
+  minHeight: '30px', 
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const buttonStyle: React.CSSProperties = {
+  backgroundColor: 'black',
+  border: 'none',
+  color: 'white',
+  padding: '10px 20px',
+  textAlign: 'center',
+  textDecoration: 'none',
+  display: 'inline-block',
+  fontSize: '16px',
+  margin: '4px 2px',
+  cursor: 'pointer',
+  borderRadius: '20px',
+};
+
+const deleteStyle: React.CSSProperties = {
+  backgroundColor: '#f44336'
+}
+
+const socialButton = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '15px',
+  border: 'none',
+  borderRadius: '5px',
+  marginRight: '10px',
+  marginTop: '9px',
+  cursor: 'pointer',
+  transition: 'background-color 0.3s',
 };
 
 export default UserProfile;

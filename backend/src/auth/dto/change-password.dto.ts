@@ -2,7 +2,7 @@ import { IsNotEmpty, IsString, Matches, MinLength, Validate } from 'class-valida
 import { MatchPasswords } from '../match-passwords.validator';
 
 export class ChangePasswordDto {
-  @IsNotEmpty()
+
   @IsString()
   currentPassword: string;
 

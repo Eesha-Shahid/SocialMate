@@ -4,10 +4,12 @@ import Sidebar from '@/components/Sidebar';
 
 const Facebook = () => {
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <Sidebar/>
-      <AccountsBar />
-      <h1>Facebook</h1>
+      <div style={{ padding: '20px' }}>
+        <h1>Facebook Profile</h1>
+        <AccountsBar />
+      </div>
     </div>
   );
 };

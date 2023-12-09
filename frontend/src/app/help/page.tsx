@@ -4,9 +4,11 @@ import Sidebar from "@/components/Sidebar";
 const Help = () => {
 
     return (
-      <div>
-        <Sidebar/>
-        <h1>Help and Support</h1>
+      <div style={{ display: 'flex' }}>
+        <Sidebar />
+        <div style={{ padding: '20px' }}>
+          <h1>Help</h1>
+        </div>
       </div>
     );
   };

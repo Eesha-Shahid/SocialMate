@@ -4,10 +4,12 @@ import Sidebar from '@/components/Sidebar';
 
 const Twitter = () => {
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <Sidebar/>
-      <AccountsBar />
-      <h1>Twitter</h1>
+      <div style={{ padding: '20px' }}>
+        <h1>Twitter Profile</h1>
+        <AccountsBar />
+      </div>
     </div>
   );
 };

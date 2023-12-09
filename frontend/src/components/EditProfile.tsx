@@ -31,8 +31,7 @@ const EditProfileForm: React.FC<UserProfileProps> = ({ user }) => {
 
   const handleSaveChanges = async() => {
     try {
-        const token = localStorage.getItem('token');
-        await AuthService.updateUsername(updatedUser.username, token);
+        await AuthService.updateUsername(updatedUser.username);
         router.push('/profile');
     } 
     catch (error) {
@@ -46,9 +45,10 @@ const EditProfileForm: React.FC<UserProfileProps> = ({ user }) => {
       {user && (
         <>
             <div>
-            <label>
-              <strong>Username:</strong>
+            <label style={{textAlign: 'left', marginBottom: '5px'}}>
+              <strong>Username</strong>
               <input
+                style={fieldStyles}
                 type="text"
                 value={updatedUser.username}
                 name="username"
@@ -57,14 +57,38 @@ const EditProfileForm: React.FC<UserProfileProps> = ({ user }) => {
             </label>
           </div>
           <div>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Type:</strong> {user.userType}</p>
+            <p><strong>Email</strong><span style={{...fieldStyles, color:'grey'}}>{user.email}</span></p>
+            <p><strong>Type</strong><span style={{...fieldStyles, color:'grey'}}>{user.userType}</span></p>
           </div>
-          <button onClick={handleSaveChanges}>Save Changes</button>
+          <button style={buttonStyle} onClick={handleSaveChanges}>Save Changes</button>
         </>
       )}
     </div>
   );
+};
+
+const fieldStyles = {
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  padding: '5px',
+  margin: '8px 0',
+  minHeight: '30px', 
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const buttonStyle: React.CSSProperties = {
+  backgroundColor: 'black',
+  border: 'none',
+  color: 'white',
+  padding: '10px 20px',
+  textAlign: 'center',
+  textDecoration: 'none',
+  display: 'inline-block',
+  fontSize: '16px',
+  margin: '4px 2px',
+  cursor: 'pointer',
+  borderRadius: '20px',
 };
 
 export default EditProfileForm;
