@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import '../styles/globals.css'
 import { UserProvider } from '@/contexts/UserProvider'
 import 'material-icons/iconfont/material-icons.css'
 
-const inter = Inter({ subsets: ['latin'] })
+// Assuming Poppins is available, you can replace the following line
+const poppins = Poppins({ weight: ['400'], subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'SocialMate',
@@ -18,10 +19,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-      <UserProvider>
-        {children}
-      </UserProvider>
+      <body className={poppins.className}>
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   )

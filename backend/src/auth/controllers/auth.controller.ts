@@ -11,21 +11,26 @@ import { AuthService } from '../services/auth.service';
 
 // Auth Guard
 import { RolesAuthGuard } from '../roles-auth.guard';
-import { UserType } from '../../common/enums/users.enum';
-import { Roles } from '../roles.decorator';
 import { User } from '../schemas/user.schema';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { EmailDto } from '../dto/email.dto';
 import { AddCardDto } from 'src/card/dto/add-card.dto';
 import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
+import { OAuth2Client } from 'google-auth-library';
+import { Roles } from '../roles.decorator';
+import { UserType } from 'src/common/enums/users.enum';
 
+
+const client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+);
 
 @Controller('auth')
 @UseGuards(RolesAuthGuard)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    // private readonly redditService: RedditService,
   ) {}
 
   @Post('signup')
@@ -36,6 +41,26 @@ export class AuthController {
   @Post('login')
   login(@Body() loginDto: LoginDto): Promise<{ user: User, token: string }> {
     return this.authService.login(loginDto);
+  }
+
+  @Post('google-signup')
+  async googleSignup(@Body('token') token): Promise<any> {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const { email, name, picture } = ticket.getPayload();
+    return await this.authService.googleSignup({ email, name, image: picture });
+  }
+
+  @Post('google-login')
+  async googleLogin(@Body('token') token): Promise<any> {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const { email } = ticket.getPayload();
+    return await this.authService.googleLogin({ email });
   }
 
   @Post('send-forgot-email')

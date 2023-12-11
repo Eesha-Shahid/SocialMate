@@ -16,7 +16,7 @@ import { EmailDto } from '../dto/email.dto';
 import { CardService } from 'src/card/services/card.service';
 import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
 import { Card } from 'src/card/schemas/card.schema';
-import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'crypto';
+import { createCipheriv, randomBytes, scrypt } from 'crypto';
 import { promisify } from 'util';
 
 @Injectable()
@@ -54,11 +54,36 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.userModel.findOne({ email })
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('LOGIN.INVALID_EMAIL_OR_PASSWORD');
     }
 
     const token = this.jwtService.sign({ id: user._id })
     return { user, token };
+  }
+
+  async googleSignup({email,name,image,}: {email: string;name: string;image: string;}): Promise<any> {
+    const user = await this.userModel.findOne({ email: email });
+    if (!user) {
+      const newUser = new this.userModel({ username: name, email, googleAuth: true });
+      await newUser.save();
+      const updatedUser = await this.updateUserProfilePic(newUser.id, image)
+      const token = this.jwtService.sign({ id: newUser.id })
+      return { updatedUser, token };
+    }
+    else{
+      console.error("GOOGLE_LOGIN.USER_ALREADY_EXISTS")
+    }
+  }
+
+  async googleLogin({email}: {email: string}): Promise<any> {
+    const user = await this.userModel.findOne({ email: email });
+    if (user) {
+      const token = this.jwtService.sign({ id: user.id })
+      return { user, token };
+    }
+    else {
+      console.error("GOOGLE_LOGIN.USER_DOES_NOT_EXIST")
+    }
   }
 
   async findById(userId: string): Promise<User | null>{
@@ -69,7 +94,7 @@ export class AuthService {
     const {email} = emailDto
     const user = await this.userModel.findOne({ email: email })
     if (!user){
-      throw new UnauthorizedException('Invalid email');
+      console.error('RESET_EMAIL.INVALID_EMAIL');
     }
     else{
       const resetLink = `http://localhost:3000/reset?email=${encodeURIComponent(user.email)}`;
@@ -92,7 +117,7 @@ export class AuthService {
     const { currentPassword, newPassword } = changePasswordDto;
     const user = await this.userModel.findById(userId);
     if (!(await bcrypt.compare(currentPassword, user.password))) {
-        throw new UnauthorizedException('Current password is incorrect');
+        console.error('CHANGE_PASSWORD.INCORRECT_CURRENT_PASSWORD');
     }
 
     user.password = await bcrypt.hash(newPassword, 10);;
@@ -134,13 +159,13 @@ export class AuthService {
     try {
         const user = await this.userModel.findById(userId);
         if (!user) {
-            console.error('User not found');
+            console.error('VIEW_CARDS.USER_NOT_FOUND');
             return null;
         }
         const cards = user.cards;
         return cards;
     } catch (error) {
-        console.error('Error viewing cards:', error);
+        console.error('VIEW_CARDS.', error);
         return null;
     }
   }
@@ -162,7 +187,7 @@ export class AuthService {
       );
       return updatedUser;
     } catch (error) {
-      console.error('Error adding card:', error);
+      console.error('ADD_CARD.', error);
       return null;
     }
   }
@@ -178,7 +203,7 @@ export class AuthService {
   
       return updatedUser;
     } catch (error) {
-      console.error('Error deleting card:', error);
+      console.error('DELETE_CARD.', error);
       return null;
     }
   }

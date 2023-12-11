@@ -6,6 +6,7 @@ export type User = {
     email: string;
     profilePic: string;
     userType: 'Standard' | 'Premium';
+    googleAuth: boolean;
     facebookAccessToken: string | null;
     instagramAccessToken: string | null;
     twitterAccessToken: string | null;
@@ -47,6 +48,12 @@ export type CardInfomration = {
     expMonth: number;
     expYear: number;
     cvc: string;
+}
+
+export type GoogleResponse = {
+    clientId?: string;
+    credential?: string;
+    select_by?: string;
 }
 
 export type AuthResponse = {

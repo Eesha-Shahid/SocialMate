@@ -143,7 +143,7 @@ const buttonStyle: React.CSSProperties = {
   fontSize: '16px',
   margin: '4px 2px',
   cursor: 'pointer',
-  borderRadius: '20px',
+  borderRadius: '10px',
 };
 
 const deleteStyle: React.CSSProperties = {

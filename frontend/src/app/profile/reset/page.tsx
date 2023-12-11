@@ -34,7 +34,7 @@ const ResetPassword = () => {
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar />
-      <div style={{ padding: '20px' }}>
+      <div style={{ padding: '10rem', paddingTop: '4rem'}}>
         <h1>Change Password</h1>
         <form onSubmit={handleSubmit}>
           <label>

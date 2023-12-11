@@ -44,15 +44,15 @@ const Reddit = () => {
       const data = await RedditService.fetchRedditKarma();
       setRedditKarma(data);
     } catch (error) {
-      console.error('Error fetching user profile:', (error as Error).message);
+      console.error('Error fetching Reddit Karma:', (error as Error).message);
     }
   };
 
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar />
-      <div style={{ padding: '20px' }}>
-        <h1>Reddit Profile</h1>
+      <div style={{ padding: '10rem', paddingTop: '4rem'}}>
+        <h1>Reddit</h1>
         <AccountsBar />
         {redditUser != null ? (
           <>

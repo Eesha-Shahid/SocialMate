@@ -4,7 +4,6 @@ import { Formik, Form, Field, FormikHelpers } from 'formik';
 import {useRouter} from 'next/navigation';
 
 // Components
-import AccountsBar from "@/components/AccountsBar";
 import Sidebar from "@/components/Sidebar";
 
 // Types
@@ -44,6 +43,7 @@ const CreatePost = () => {
         try {
             const data = await RedditService.submitPost(values.sr, values.title, values.text, values.url, values.flairId, values.flairName);
             console.log(data)
+            alert("Post Created Successfully")
             router.push('/dashboard/reddit');
         } catch (error) {
             console.error('Submit error:', (error as Error).message);
@@ -53,7 +53,7 @@ const CreatePost = () => {
     return (
         <div style={{ display: 'flex' }}>
             <Sidebar />
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '10rem', paddingTop: '4rem'}}>
                 <h1>Create Reddit Post</h1>
 
                 {/* Post Type */}

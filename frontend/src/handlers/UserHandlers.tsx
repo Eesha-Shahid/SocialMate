@@ -3,6 +3,7 @@ import AuthService from "@/services/AuthService";
 import RedditService from "@/services/RedditService";
 import UserService from "@/services/UserService";
 import { CardInfomration, TSocialLogin } from "@/types/User";
+import { googleLogout } from "@react-oauth/google";
 import { deleteCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +45,9 @@ export default function UserHandler() {
 
     const handleDelete = async() => {
         try{
+          if (user?.googleAuth){
+            googleLogout();
+          }
           await AuthService.deleteProfile();
           deleteCookie('token');
           setUser(null)
@@ -66,6 +70,9 @@ export default function UserHandler() {
     }
 
     const handleLogout = async() => {
+      if (user?.googleAuth){
+        googleLogout();
+      }
       deleteCookie('token');
       setUser(null);
       router.replace("/");

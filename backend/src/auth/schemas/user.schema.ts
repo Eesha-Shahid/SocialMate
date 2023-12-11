@@ -18,6 +18,9 @@ export class User {
     @Prop()
     profilePic: string;
 
+    @Prop({default: false})
+    googleAuth: boolean;
+
     @Prop({enum: Object.values(UserType), default: UserType.Standard})
     userType: UserType;
 

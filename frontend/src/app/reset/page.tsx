@@ -1,13 +1,18 @@
 'use client'
-import useUser from "@/hooks/useUser";
-import AuthService from "@/services/AuthService";
-import { ChangePassword } from "@/types/User";
-import { setCookie } from "cookies-next";
-import { Field, Form, Formik, FormikHelpers } from "formik";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { authStyle } from '../../styles/authStyle';
+import Image from 'next/image';
+import illustration from '../../assets/images/illustration.png';
+import AuthService from '@/services/AuthService';
+import { Field, Form, Formik, FormikHelpers } from 'formik';
+import Link from 'next/link';
+import { ChangePassword } from '@/types/User';
+import { setCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
+import useUser from '@/hooks/useUser';
 
-export default function Forgot() {
+export default function Reset() {
+
     const [email, setEmail] = useState<string | null>(null);
     const router = useRouter();
     const { user, setUser } = useUser();
@@ -37,29 +42,39 @@ export default function Forgot() {
           console.error('Sign-in error:', (error as Error).message);
         }
     } 
-    
-    return(
-        <div style={{ textAlign: 'center' }}>
-        <h1>Reset Password</h1>
-            <div style={{ maxWidth: '300px', margin: 'auto', padding: '20px', border: '1px solid #ccc', borderRadius: '5px' }}>
-                <Formik
-                    initialValues={{ currentPassword:"", newPassword: "", confirmPassword: "" }}
-                    onSubmit={( values: ChangePassword, { setSubmitting }: FormikHelpers<ChangePassword>) => {
-                    setTimeout(() => {
-                        handleSubmit(values);
-                        setSubmitting(false);
-                    }, 500);
-                    }}
-                >
-                    <Form style={{ display: 'flex', flexDirection: 'column', padding: '10px' }}>
-                    <label htmlFor='newPassword' style={{ textAlign: 'left', marginBottom: '5px' }}>New Password </label>
-                    <Field id="newPassword" type="password" name="newPassword" required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
-                    <label htmlFor='confirmPassword' style={{ textAlign: 'left', marginBottom: '5px' }}>Confirm Password </label>
-                    <Field id="confirmPassword" type="password" name="confirmPassword" required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
-                    <button type="submit" style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Change Password</button>
-                    </Form>
-                </Formik>
-            </div>
+
+  return (
+    <main style={authStyle.container}>
+      <div style={authStyle.illustrationContainer}>
+        <Image src={illustration} alt="Illustration" style={authStyle.illustration} />
+        <div style={{ fontWeight: 600, fontSize: '22px', marginTop: '20px' }}>Reset Password?</div>
+        <div style={{ fontSize: '22px', marginBottom: '20px' }}>No worries, we’ll send you reset instructions.</div>
+      </div>
+
+      <div style={authStyle.contentContainer}>
+        <h1 style={authStyle.heading}>Forgot Password</h1>
+        <Formik
+            initialValues={{ currentPassword:"", newPassword: "", confirmPassword: "" }}
+            onSubmit={( values: ChangePassword, { setSubmitting }: FormikHelpers<ChangePassword>) => {
+            setTimeout(() => {
+                handleSubmit(values);
+                setSubmitting(false);
+            }, 500);
+            }}
+            >
+            <Form>
+                <div style={authStyle.inputContainer}><Field name="newPassword" type="password" id="newPassword" placeholder='New Password'required style={authStyle.inputField} /></div>
+                <div style={authStyle.inputContainer}><Field name="confirmPassword" type="password" id="confirmPassword" placeholder='Confirm Password'required style={authStyle.inputField} /></div>
+                <div style={authStyle.buttonContainer}><button type="submit" style={authStyle.button}>Change Password</button></div>
+            </Form>
+        </Formik>
+
+        {/* Forgot Password Link */}
+        <div style={authStyle.forgotPasswordLink}>
+          <Link href="/login">Back to Login</Link>
         </div>
-    )
+
+      </div>
+    </main>
+  );
 }

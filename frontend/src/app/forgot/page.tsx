@@ -1,7 +1,12 @@
-// Components
 'use client'
-import AuthService from "@/services/AuthService";
-import { Field, Form, Formik, FormikHelpers } from "formik";
+import React from 'react';
+import { authStyle } from '../../styles/authStyle';
+import Image from 'next/image';
+import illustration from '../../assets/images/illustration.png';
+import AuthService from '@/services/AuthService';
+import { Field, Form, Formik, FormikHelpers } from 'formik';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type forgotPasswordInput = {
   email: string;
@@ -9,39 +14,50 @@ type forgotPasswordInput = {
 
 export default function Forgot() {
 
-  const emailIcon = "https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/112-gmail_email_mail-512.png";
+  const router = useRouter();
+
   const handleSubmit = async(values: forgotPasswordInput) => {
     try {
-      await AuthService.forgotPassword(values.email);
+      const response = await AuthService.forgotPassword(values.email);
+      if (response){
+        router.push('/forgot/verify')
+      }
     } catch (error) {
       console.error('Sign-in error:', (error as Error).message);
     }
   } 
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <h1>Forgot Password</h1>
-      <div style={{ maxWidth: '300px', margin: 'auto', padding: '20px', border: '1px solid #ccc', borderRadius: '5px' }}>
+    <main style={authStyle.container}>
+      <div style={authStyle.illustrationContainer}>
+        <Image src={illustration} alt="Illustration" style={authStyle.illustration} />
+        <div style={{ fontWeight: 600, fontSize: '22px', marginTop: '20px' }}>Forgot Password?</div>
+        <div style={{ fontSize: '22px', marginBottom: '20px' }}>No worries, we’ll send you reset instructions.</div>
+      </div>
+
+      <div style={authStyle.contentContainer}>
+        <h1 style={authStyle.heading}>Forgot Password</h1>
         <Formik
-          initialValues={{ email: ""}}
-          onSubmit={( values: forgotPasswordInput, { setSubmitting }: FormikHelpers<forgotPasswordInput>) => {
+            initialValues={{ email: "" }}
+            onSubmit={( values: forgotPasswordInput, { setSubmitting }: FormikHelpers<forgotPasswordInput>) => {
             setTimeout(() => {
               handleSubmit(values);
-              setSubmitting(false);
+                setSubmitting(false);
             }, 500);
-          }}
+            }}
         >
-          <Form style={{ display: 'flex', flexDirection: 'column', padding: '10px' }}>
-            <label htmlFor='email'style={{ textAlign: 'left', marginBottom: '5px' }}>Email:</label>
-            <Field id="email" type="email" name="email" placeholder="Enter email" required style={{ padding: '8px', borderRadius: '5px', marginBottom: '10px' }}/>
-            <br /><br />
-            <button type="submit" style={{ marginTop: '10px', padding: '10px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto', width: '95%' }}>
-              <img src={emailIcon} alt="Google Icon" style={{  width: '20px', height: '20px', marginRight: '10px' }} />
-              Send Reset Link
-            </button>
+          <Form>
+            <div style={authStyle.inputContainer}><Field name="email" type="email" id="email" placeholder='Enter Your Email' required style={authStyle.inputField} /></div>
+            <div style={authStyle.buttonContainer}><button type="submit" style={authStyle.button}>Verify Email</button></div>
           </Form>
         </Formik>
+
+        {/* Forgot Password Link */}
+        <div style={authStyle.forgotPasswordLink}>
+          <Link href="/login">Back to Login</Link>
+        </div>
+
       </div>
-    </div>
-  )
+    </main>
+  );
 }

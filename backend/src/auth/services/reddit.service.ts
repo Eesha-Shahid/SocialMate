@@ -43,7 +43,7 @@ export class RedditService {
             return await user.save();
 
         } catch (error) {
-        throw new Error('Failed to obtain Reddit access token');
+            console.error('CONNECT_REDDIT.',error);
         }
     }
 
@@ -58,7 +58,7 @@ export class RedditService {
             );
             return response.data
         } catch (error) {
-        throw new Error('Failed to obtain Reddit Data');
+            console.error('FETCH_REDDIT_PROFILE.',error);
         }
     }
 
@@ -79,7 +79,7 @@ export class RedditService {
             );
             return response.data
         } catch (error) {
-        throw new Error('Failed to obtain Reddit Karma');
+            console.error('FETCH_REDDIT_KARMA.',error);
         }
     }
 
@@ -220,7 +220,7 @@ export class RedditService {
     
             return flairs;
         } catch (error) {
-            throw new Error('Failed to fetch Subreddit Flairs');
+            console.error('FETCH_SUBREDDIT_FLAIRS.',error);
         }
     }
 
@@ -230,14 +230,12 @@ export class RedditService {
             const data = await response.json();
         
             if (response.ok && data && data.kind === 't5') {
-                // console.log(`Subreddit "${subreddit}" exists!`);
                 return true;
             } else {
-                // console.log(`Subreddit "${subreddit}" does not exist.`);
                 return false;
             }
         } catch (error) {
-            console.error('Error checking subreddit existence:', error.message);
+            console.error('CHECK_SUBREDDIT_EXISTS.',error);
             return false;
         }
     };
@@ -246,7 +244,7 @@ export class RedditService {
         const userr = await this.userModel.findById(user._id);
         
         if (!userr) {
-            throw new Error('User not found');
+            console.error('DELETE_REDDIT_TOKEN.USER_NOT_FOUND');
         }
 
         user.redditAccessToken = null;

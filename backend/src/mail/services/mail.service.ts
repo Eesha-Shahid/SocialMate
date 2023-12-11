@@ -22,7 +22,7 @@ export class MailService {
         const accessToken: string = await new Promise((resolve, reject) => {
           oauth2Client.getAccessToken((err, token) => {
             if (err) {
-              reject('Failed to create access token :(');
+              reject('SET_TRANSPORT.ACCESS_TOKEN_CREATION_FAILED');
             }
             resolve(token);
           });
@@ -41,13 +41,14 @@ export class MailService {
         this.mailerService.addTransporter('gmail', config);
     }
 
-    async sendEmail(mailOptions: object) {
+    async sendEmail(mailOptions: object): Promise<boolean> {
         try {
             await this.mailerService.sendMail(mailOptions);
-            console.log('Email sent successfully');
+            return true;
         } 
         catch (error) {
-            console.error('Error sending email:', error);
+            console.error('SEND_EMAIL.', error);
+            return false;
         }
     }
 }

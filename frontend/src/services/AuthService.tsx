@@ -1,5 +1,5 @@
 // AuthService.ts
-import { User } from '@/types/User';
+import { GoogleResponse, User } from '@/types/User';
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 
@@ -15,6 +15,33 @@ class AuthService {
     }
   }
 
+  async googleSignup(credentialResponse: GoogleResponse){
+    try {
+      const response = await axios.post("http://localhost:4000/auth/google-signup",
+      {
+          token: credentialResponse.credential,
+      }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error('Google Sign-up failed');
+    }
+  }
+
+  async googleLogin(credentialResponse: GoogleResponse){
+    try {
+      const response = await axios.post("http://localhost:4000/auth/google-login",
+      {
+          token: credentialResponse.credential,
+      }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error('Google Sign-in failed');
+    }
+  }
+
+
   async register(username: string, email: string, password: string) {
     try {
       const response = await axios.post(`${API_URL}/auth/signup`, {
@@ -24,7 +51,7 @@ class AuthService {
       });
       return response.data;
     } catch (error) {
-      throw new Error('Sign-in failed');
+      throw new Error('Registration failed');
     }
   }
 
