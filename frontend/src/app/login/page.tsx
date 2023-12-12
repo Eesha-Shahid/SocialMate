@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useState } from 'react';
 import { authStyle } from '../../styles/authStyle';
 import Image from 'next/image';
 import illustration from '../../assets/images/illustration.png';
@@ -11,12 +11,26 @@ import useUser from '@/hooks/useUser';
 import Link from 'next/link';
 import { Field, Form, Formik, FormikHelpers } from 'formik';
 import { TLogin } from '@/types/User';
-import LoginHandlers from '@/handlers/LoginHandlers';
 
 export default function Login() {
   const router = useRouter();
   const {user, setUser} = useUser();
-  const { handleLoginSubmit } = LoginHandlers();
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLoginSubmit = async(values: TLogin) => {
+    try {
+      const data = await AuthService.login(values.email, values.password);
+      setCookie('token',data.token)
+      setUser(data.user)
+      console.log('Sign-in successful');
+      router.push('/dashboard');
+    } catch (error) {
+      setErrorMessage((error as Error).message);
+      setShowOverlay(true);
+      console.error(error);
+    }
+}
 
   return (
     <main style={authStyle.container}>
@@ -37,9 +51,9 @@ export default function Login() {
                 onSuccess={async (credentialResponse) => {
                     const data = await AuthService.googleLogin(credentialResponse)
                     if (data.token){
-                    setCookie('token',data.token)
-                    setUser(data);
-                    router.push('/dashboard')
+                      setCookie('token',data.token)
+                      setUser(data);
+                      router.push('/dashboard')
                     }
                 }}
                 onError={() => {console.log("Login Failed");}}
@@ -73,6 +87,17 @@ export default function Login() {
         <div style={authStyle.signUpLink}>
           Don't have an account? <Link href="/register">Sign Up</Link>
         </div>
+
+        {/* Error overlay */}
+        {showOverlay && (
+          <div style={authStyle.overlay}>
+            <div style={authStyle.overlayContent}>
+              <p>{errorMessage}</p>
+              <button style={authStyle.overlayContentButton} onClick={() => setShowOverlay(false)}>Close</button>
+            </div>
+          </div>
+        )}
+
       </div>
     </main>
   );

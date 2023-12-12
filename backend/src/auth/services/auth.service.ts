@@ -13,14 +13,9 @@ import { StripeService } from '../../payments/services/stripe.service';
 import { MailService } from 'src/mail/services/mail.service';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { EmailDto } from '../dto/email.dto';
-import { CardService } from 'src/card/services/card.service';
 import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
-
 import { Card } from 'src/card/schemas/card.schema';
-import { createCipheriv, randomBytes, scrypt } from 'crypto';
-import { promisify } from 'util';
 import { SavePaymentDto } from 'src/payments/dto/save-payment.dto';
-import { CardInfoDto } from 'src/payments/dto/cardInfo.dto';
 import { UpdateCardDto } from 'src/card/dto/update-card.dto';
 import { UserType } from 'src/common/enums/users.enum';
 import { Payment } from 'src/payments/schemas/payment.schema';
@@ -32,7 +27,6 @@ export class AuthService {
     private readonly stripeService: StripeService,
     
     private mailService: MailService,
-    private cardService: CardService,
 
     @InjectModel(User.name)
     private userModel: Model<User>,

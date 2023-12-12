@@ -84,6 +84,55 @@ class AuthStyle {
   signUpLink: CSSProperties = {
     marginTop: '1.5rem',
   };
+
+  overlay: CSSProperties = {
+    position: 'fixed', // Fixed was missing quotes
+    top: 0,
+    left: 0,
+    width: '100%', // Quotes were missing
+    height: '100%', // Quotes were missing
+    background: 'rgba(0, 0, 0, 0.5)', // Quotes were missing
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000, // Semicolon was removed
+  };
+
+  overlayContent: CSSProperties = {
+    background: '#fff', // Quotes were missing
+    padding: '20px', // Quotes were missing
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+    textAlign: 'center',
+  };
+
+  overlayContentP: CSSProperties = {
+    marginBottom: '10px',
+  };
+
+  overlayContentButton: CSSProperties = {
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+    marginRight: '1rem'
+  };
+
+  importantContentButton: CSSProperties = {
+    background: 'red',
+    color: '#fff',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '1rem',
+    transition: 'background 0.3s ease', // Quotes were missing
+  };
+
+  overlayContentButtonHover: CSSProperties = {
+    background: '#2980b9',
+  };
 }
 
 export const authStyle = new AuthStyle();

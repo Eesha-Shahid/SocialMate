@@ -18,22 +18,8 @@ export default function SignUpHandler() {
         router.push('/login')
     }
 
-    const handleRegisterSubmit = async (values: TSignup) => {
-        try {
-          await AuthService.register(values.username, values.email, values.password);
-          console.log('Registration successful');
-          const loginData = await AuthService.login(values.email, values.password);
-          setCookie('token', loginData.token)
-          setUser(loginData.user)
-          router.push('/dashboard');
-        } catch (error) {
-          console.error('Registration error:', (error as Error).message);
-        }
-      };
-
     return {
         handleSignUpWithGoogle,
         handleSignIn,
-        handleRegisterSubmit
     };
 }

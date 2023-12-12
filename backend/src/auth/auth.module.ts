@@ -22,6 +22,7 @@ import { RedditController } from './controllers/reddit.controller';
 import { RedditService } from './services/reddit.service';
 import { MailModule } from 'src/mail/mail.module';
 import { CardModule } from 'src/card/card.module';
+import { SchedulerModule } from 'src/scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -39,10 +40,11 @@ import { CardModule } from 'src/card/card.module';
     CloudinaryModule,
     NestjsFormDataModule,
     MailModule,
-    CardModule
+    CardModule,
+    forwardRef(() => SchedulerModule),
   ],
   controllers: [AuthController, RedditController, PhotoController ],
   providers: [AuthService, RedditService, JwtStrategy],
-  exports: [JwtStrategy, PassportModule]
+  exports: [AuthService, JwtStrategy, RedditService, PassportModule]
 })
 export class AuthModule {}

@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useState } from 'react';
 import { authStyle } from '../../styles/authStyle';
 import Image from 'next/image';
 import illustration from '../../assets/images/illustration.png';
@@ -11,12 +11,28 @@ import useUser from '@/hooks/useUser';
 import Link from 'next/link';
 import { Field, Form, Formik, FormikHelpers } from 'formik';
 import { TSignup } from '@/types/User';
-import SignUpHandler from '@/handlers/SignupHandlers';
 
 export default function Register() {
   const router = useRouter();
   const {user, setUser} = useUser();
-  const { handleRegisterSubmit } = SignUpHandler();
+  // const { handleRegisterSubmit } = SignUpHandler();
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleRegisterSubmit = async (values: TSignup) => {
+    try {
+      await AuthService.register(values.username, values.email, values.password);
+      console.log('Registration successful');
+      const loginData = await AuthService.login(values.email, values.password);
+      setCookie('token', loginData.token)
+      setUser(loginData.user)
+      router.push('/dashboard');
+    } catch (error) {
+      setErrorMessage((error as Error).message);
+      setShowOverlay(true);
+      console.error(error);
+    }
+  };
 
   return (
     <main style={authStyle.container}>
@@ -73,6 +89,17 @@ export default function Register() {
         <div style={authStyle.signUpLink}>
           Already have an account? <Link href="/login">Log in</Link>
         </div>
+
+        {/* Error overlay */}
+        {showOverlay && (
+          <div style={authStyle.overlay}>
+            <div style={authStyle.overlayContent}>
+              <p>{errorMessage}</p>
+              <button onClick={() => setShowOverlay(false)}>Close</button>
+            </div>
+          </div>
+        )}
+        
       </div>
     </main>
   );

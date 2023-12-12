@@ -2,12 +2,15 @@
 import React, { useState } from 'react';
 import { Formik, Form, Field, FormikHelpers } from 'formik';
 import {useRouter} from 'next/navigation';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css'; // Import the styles
+
 
 // Components
 import Sidebar from "@/components/Sidebar";
 
 // Types
-import { RedditPost } from '@/types/RedditUser';
+import { ScheduledRedditPost } from '@/types/RedditUser';
 import { Flair } from '@/types/RedditUser'
 
 // Services
@@ -16,13 +19,14 @@ import FlairsComponent from '@/components/Flairs';
 import { authStyle } from '@/styles/authStyle';
 
 
-const CreatePost = () => {
+const SchedulePost = () => {
     const router = useRouter();
     const [postType, setPostType] = useState('self');
     const [flairs, setFlairs] = useState<Flair[] | null | 0>(0);
     const [selectedFlair, setSelectedFlair] = useState<Flair | null>(null);
     const [showOverlay, setShowOverlay] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [scheduledDate, setScheduledDate] = useState(new Date());
 
     const handlePostTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setPostType(e.target.value);
@@ -42,25 +46,27 @@ const CreatePost = () => {
         }
     };
 
-    const handleSubmit= async(values: RedditPost) => {
+    const handleSubmit= async(values: ScheduledRedditPost) => {
+        values.scheduledTime = scheduledDate;
         try {
             if (postType === 'self') {
                 values.url = '';
             } else if (postType === 'link') {
                 values.text = '';
             }
-            const data = await RedditService.submitPost(values.sr, values.title, values.text, values.url, values.flairId, values.flairName);
-            if (data.success == true){
-                alert("Post Created Successfully")
-                router.push('/dashboard/reddit');
-            }
-            else{
+            const data = await RedditService.schedulePost(values.sr, values.title, values.text, values.url, values.flairId, values.flairName, values.scheduledTime);
+            if (data.success == false){
                 setErrorMessage(data.errors[0]);
                 setShowOverlay(true);
             }
-        } catch (error) {
+            else if (data != null){
+                alert("Post Scheduled Successfully")
+                router.push('/dashboard/reddit');
+            }
+        } 
+        catch (error) {
             console.error('Submit error:', (error as Error).message);
-            setErrorMessage(`Oops, ${(error as Error).message}}`);
+            setErrorMessage(`Oops, ${(error as Error).message}`);
             setShowOverlay(true);
         }
     }
@@ -69,7 +75,7 @@ const CreatePost = () => {
         <div style={{ display: 'flex' }}>
             <Sidebar />
             <div style={{ padding: '10rem', paddingTop: '4rem'}}>
-                <h1>Create Reddit Post</h1>
+                <h1>Schedule Reddit Post</h1>
 
                 {/* Post Type */}
                 <label style={{textAlign: 'left', marginBottom: '10px'}}>
@@ -85,14 +91,16 @@ const CreatePost = () => {
                 {/* Form */}
                 <Formik
                     initialValues={{
+                        _id: Object('.'),
                         sr: '',
                         title: '',
                         text: '',
                         url: '',
                         flairName: '',
                         flairId: '',
+                        scheduledTime: new Date()
                     }}
-                    onSubmit={(values: RedditPost, { setSubmitting, setFieldValue}: FormikHelpers<RedditPost>) => {
+                    onSubmit={(values: ScheduledRedditPost, { setSubmitting }: FormikHelpers<ScheduledRedditPost>) => {
                         setTimeout(() => {
                             const updatedValues = {
                                 ...values,
@@ -124,8 +132,23 @@ const CreatePost = () => {
                             {postType === 'link' && <div><label style={{textAlign: 'left', marginBottom: '5px'}}>URL: <Field style={fieldStyles} type="text" name="url" /></label></div>} 
                             {/* {postType === 'image' && <div><label style={{textAlign: 'left', marginBottom: '5px'}}>Image: <Field type="file" name="image" /></label></div>} 
                             {postType === 'video' && <div><label style={{textAlign: 'left', marginBottom: '5px'}}>Video: <Field type="file" name="video" /></label></div>}  */}
+
+                            {/* Scheduled Date and Time */}
+                            <div>
+                                <br />
+                                <label style={{ textAlign: 'left', marginBottom: '5px' }}>Scheduled Date and Time:</label>
+                                <br />
+                                <DatePicker
+                                    selected={scheduledDate}
+                                    onChange={(date) => {
+                                        setScheduledDate(date as Date);
+                                    }}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                />
+                            </div>
                             <br /><br />
-                            <button style={buttonStyle} type="submit">Submit</button>
+                            <button style={buttonStyle} type="submit">Schedule</button>
                         </Form>
                     )}
                 </Formik>
@@ -186,4 +209,4 @@ const textareaStyle: React.CSSProperties = {
     resize: 'vertical',
 };
 
-export default CreatePost;
+export default SchedulePost;

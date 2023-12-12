@@ -157,7 +157,6 @@ export class AuthController {
     return await this.authService.cancelSubscription(req.user.id);
   }
 
-
   // @Get('twitter/callback')
   // twitterLoginCallback(
   //     @Req() req, 

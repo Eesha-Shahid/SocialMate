@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
 
-import { Flair, RedditKarma, RedditUser } from "@/types/RedditUser";
+import { Flair, RedditKarma, RedditUser, ScheduledPost, ScheduledRedditPost } from "@/types/RedditUser";
 import { User } from "@/types/User";
 
 const platform = 'reddit';
@@ -87,6 +87,59 @@ class RedditService {
             console.error(`Error submitting post on ${platform}:`, (error as Error).message);
             throw error; 
         }
+    }
+
+    async schedulePost(sr: string, title: string, text: string, url: string, flair_id: string, flair_text: string, scheduledTime: Date): Promise<any> {
+      try {
+          const token = getCookie('token'); 
+          const response = await axios.post(`${API_URL}/schedule`, 
+          {
+              sr, title, text, url, flair_id, flair_text, scheduledTime
+          }, 
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          return response.data;
+      } catch (error) {
+          console.error(`Error submitting post on ${platform}:`, (error as Error).message);
+          throw error; 
+      }
+    }
+
+    async getScheduledPosts(): Promise<ScheduledPost[] | []>{
+      try{
+        const token = getCookie('token'); 
+        const response = await axios.get(`${API_URL}/scheduled-posts`,{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data
+      }
+      catch(error){
+        console.error(`Error fetching scheduled post on ${platform}:`, (error as Error).message);
+        throw error; 
+      }
+    }
+
+    async deleteScheduledPost(postId: string){
+      try {
+        const token = getCookie('token'); 
+        const reponse = await axios.post(`${API_URL}/delete-post`, 
+        {
+          postId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        return reponse.data
+      } catch (error) {
+        throw new Error('Deleting Post failed');
+      }
     }
 
     async getFlairs(subreddit: string): Promise<Flair[]> {

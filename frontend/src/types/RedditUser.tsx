@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export type RedditUser = {
     is_employee: boolean;
 	seen_layout_switch: boolean;
@@ -159,11 +161,40 @@ export type RedditPost = {
 	flairId: string;
 }
 
+export type ScheduledRedditPost = {
+	_id: Types.ObjectId;
+	sr: string;
+	title: string;
+	text: string;
+	url: string;
+	flairName: string;
+	flairId: string;
+	scheduledTime: Date;
+}
+
+export type ScheduledPost = {
+	_id: Types.ObjectId;
+	user: Types.ObjectId;
+	redditPost:{
+		_id:Types.ObjectId;
+		sr:string;
+		url?:string;
+		text?:string;
+		flair_text?: string;
+		flair_id?: string;
+		title:string;
+	};
+	scheduledTime: Date;
+	createdAt: any;
+	updatedAt: any;
+}
+
 export type Flair = {
     id: string;
     text: string;
     emojiUrl: string;
 	background_color: string;
+	text_color: string;
 }
 
 export type Subreddt = {
