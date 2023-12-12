@@ -4,6 +4,9 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 export class Card {
 
     [x: string]: any;
+
+    @Prop({ default: false })
+    default: boolean;
     
     @Prop()
     cardNumber: string;

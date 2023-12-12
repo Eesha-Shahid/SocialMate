@@ -1,4 +1,4 @@
-import { CardInfomration, User } from "@/types/User";
+import { CardInfomration, PaymentInformation, User } from "@/types/User";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 
@@ -103,6 +103,86 @@ class UserService {
       return response.data;
     } catch (error) {
       throw new Error('Adding Card failed');
+    }
+  }
+
+  async deleteCardInformation(cardId: string): Promise<void> {
+    try {
+      const token = getCookie('token'); 
+      const reponse = await axios.patch(`${API_URL}/auth/delete-card`, 
+      {
+        cardId
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      return reponse.data
+    } catch (error) {
+      throw new Error('Deleting Card failed');
+    }
+  }
+
+  async setDefaultCard(cardId: string): Promise<void> {
+    try {
+      const token = getCookie('token'); 
+      const reponse = await axios.patch(`${API_URL}/auth/set-default-card`, 
+      {
+        cardId
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      return reponse.data
+    } catch (error) {
+      throw new Error('Deleting Card failed');
+    }
+  }
+
+  async getPaymentInformation(): Promise<PaymentInformation[] | []>{
+    try {
+      const token = getCookie('token');
+      const response = await axios.get(`${API_URL}/auth/payments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error('Fetching cards failed');
+    }
+  }
+
+  async subscribe(): Promise<User> {
+    try {
+      const token = getCookie('token'); 
+      const response = await fetch(`${API_URL}/auth/subscribe`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return await response.json();
+    } catch (error) {
+      throw new Error('Subscription failed');
+    }
+  }
+
+  async cancelSubscription(): Promise<User> {
+    try {
+      const token = getCookie('token'); 
+      const response = await fetch(`${API_URL}/auth/unsubscribe`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return await response.json();
+    } catch (error) {
+      throw new Error('Canceling subscription failed');
     }
   }
 }

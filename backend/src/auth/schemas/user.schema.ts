@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { UserType } from "../../common/enums/users.enum";
 import { Card } from "src/card/schemas/card.schema";
+import { Payment } from "src/payments/schemas/payment.schema";
 
 @Schema({ timestamps: true })
 export class User {
@@ -41,6 +42,9 @@ export class User {
 
     @Prop({ type: [Card], default:[] })
     cards: Card[];
+
+    @Prop({ type: [Payment], default:[] })
+    payments: Payment[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

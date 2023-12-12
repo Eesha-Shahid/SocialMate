@@ -12,6 +12,7 @@ export type User = {
     twitterAccessToken: string | null;
     redditAccessToken: string | null;
     cards: CardInfomration[];
+    payments: PaymentInformation[];
     createdAt: any;
     updatedAt: any;
 }
@@ -44,10 +45,22 @@ export type ChangePassword = {
 }
 
 export type CardInfomration = {
+    _id: Types.ObjectId;
+    default: boolean;
     cardNumber: string;
     expMonth: number;
     expYear: number;
     cvc: string;
+}
+
+export type PaymentInformation = {
+    _id: Types.ObjectId;
+    card: string;
+    amount: Number;
+    currency: String
+    payment_method: String
+    createdAt: any
+
 }
 
 export type GoogleResponse = {

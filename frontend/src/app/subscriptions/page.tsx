@@ -1,7 +1,8 @@
-// Components
+'use client'
 import CardsInformation from "@/components/CardsInformation";
 import PlanInformation from "@/components/PlanInformation";
 import Sidebar from "@/components/Sidebar";
+import useUser from "@/hooks/useUser";
 import Link from "next/link";
 
 const Subscriptions = () => {
@@ -33,4 +34,4 @@ const buttonStyle: React.CSSProperties = {
 };
   
 export default Subscriptions;
-  
+

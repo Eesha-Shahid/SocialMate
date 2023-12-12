@@ -15,9 +15,15 @@ import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { EmailDto } from '../dto/email.dto';
 import { CardService } from 'src/card/services/card.service';
 import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
+
 import { Card } from 'src/card/schemas/card.schema';
 import { createCipheriv, randomBytes, scrypt } from 'crypto';
 import { promisify } from 'util';
+import { SavePaymentDto } from 'src/payments/dto/save-payment.dto';
+import { CardInfoDto } from 'src/payments/dto/cardInfo.dto';
+import { UpdateCardDto } from 'src/card/dto/update-card.dto';
+import { UserType } from 'src/common/enums/users.enum';
+import { Payment } from 'src/payments/schemas/payment.schema';
 
 @Injectable()
 export class AuthService {
@@ -141,15 +147,10 @@ export class AuthService {
   }
 
   async removeUserProfilePic(userId: string): Promise<void> {
-    // const user = await this.userModel.findById(userId);
-    // await this.cloudinaryService.removePicture(user.profilePic);
     return await this.userModel.findByIdAndUpdate(userId, { profilePic: null }, { new: true });
   }
   // Delete User
   async deleteById(user: User){
-
-    //Deleting user associated data
-    //await this.paymentsService.deleteMany(user);
 
     //Deleting user
     await this.userModel.findByIdAndDelete({ _id: user._id });
@@ -172,17 +173,25 @@ export class AuthService {
 
   async addCard(userId: string, addCardDto): Promise<User | null> {
     try {
-      const iv = randomBytes(16);
-      const password = 'socialmate14';
-      const key = (await promisify(scrypt)(password, 'salt', 32)) as Buffer;
-      const cipher = createCipheriv('aes-256-ctr', key, iv);
-      const encryptedCardNumber = Buffer.concat([
-        cipher.update(addCardDto.cardNumber),
-        cipher.final(),
-      ]);
+      // const iv = randomBytes(16);
+      // const password = 'socialmate14';
+      // const key = (await promisify(scrypt)(password, 'salt', 32)) as Buffer;
+      // const cipher = createCipheriv('aes-256-ctr', key, iv);
+      // const encryptedCardNumber = Buffer.concat([
+      //   cipher.update(addCardDto.cardNumber),
+      //   cipher.final(),
+      // ]);
+
+      const user = await this.userModel.findById(userId);
+      const isDefault = user.cards.length === 0;
+
       const updatedUser = await this.userModel.findByIdAndUpdate(
         userId,
-        { $push: { cards: { ...addCardDto, cardNumber: encryptedCardNumber } } },
+        { $push: { cards: { 
+          ...addCardDto, 
+          cardNumber: addCardDto.cardNumber,
+          default: isDefault,
+         } } },
         { new: true },
       );
       return updatedUser;
@@ -204,6 +213,132 @@ export class AuthService {
       return updatedUser;
     } catch (error) {
       console.error('DELETE_CARD.', error);
+      return null;
+    }
+  }
+
+  async setDefaultCard(userId: string, updateCardDto: UpdateCardDto): Promise<User | null> {
+    try {
+      const {cardId} = updateCardDto;
+      
+      await this.userModel.updateOne(
+        { _id: userId },
+        { $set: { 'cards.$[].default': false } }
+      );
+
+      const updatedUser = await this.userModel.findOneAndUpdate(
+        { _id: userId, 'cards._id': cardId },
+        { $set: { 'cards.$.default': true } },
+        { new: true },
+      );
+
+      return updatedUser;
+    } catch (error) {
+      console.error('SET_DEFAULT_CARD.', error);
+      return null;
+    }
+  }
+
+  async getDefaultCardId(userId: string): Promise<Card> {
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        console.error('GET_DEFAULT_CARD_ID.USER_NOT_FOUND');
+        return null;
+      }
+
+      const defaultCard = user.cards.find((card) => card.default);
+      if (!defaultCard) {
+        console.error('GET_DEFAULT_CARD_ID.DEFAULT_CARD_NOT_FOUND');
+        return null;
+      }
+
+      return defaultCard;
+    } catch (error) {
+      console.error('GET_DEFAULT_CARD_ID.', error);
+      return null;
+    }
+  }
+
+  async subscribe(userId: string, customerId: string){
+    const user = await this.userModel.findById(userId);
+    if (user.userType === UserType.Premium) {
+      console.error('SUBSCRIBE.ALREADY_PREMIUM_USER');
+      return null; 
+    }
+
+    const defaultCard = await this.getDefaultCardId(userId);
+
+    if (!defaultCard) {
+      console.error('SUBSCRIBE.DEFAULT_CARD_NOT_FOUND');
+      return null;
+    }
+
+
+    const clientSecret = await this.stripeService.createPaymentIntent(customerId);
+    const paymentIntent = await this.stripeService.confirmCardPayment(clientSecret)
+    const savePaymentDto = new SavePaymentDto();
+    savePaymentDto.card = defaultCard.cardNumber;
+    savePaymentDto.amount = paymentIntent.amount;
+    savePaymentDto.currency = paymentIntent.currency;
+    savePaymentDto.payment_method = "Card";
+    
+    try {
+      const user = await this.userModel.findOne({ stripeCustomerId: customerId })
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        user.id,
+        { 
+          $push: { payments: { ...savePaymentDto } },
+          $set: { userType: UserType.Premium } // Set user type to premium
+        },
+        { new: true },
+      );
+      return updatedUser;
+    } catch (error) {
+      console.error('SUBSCRIBE.', error);
+      return null;
+    } 
+  }
+
+  async getPayments(userId: string): Promise<Payment[] | null> {
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        console.error('GET_PAYMENTS.USER_NOT_FOUND');
+        return null;
+      }
+  
+      return user.payments;
+    } catch (error) {
+      console.error('GET_PAYMENTS.', error);
+      return null;
+    }
+  }  
+
+  async cancelSubscription(userId: string): Promise<User | null> {
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        console.error('CANCEL_SUBSCRIPTION.USER_NOT_FOUND');
+        return null;
+      }
+
+      if (user.userType !== UserType.Premium) {
+        console.error('CANCEL_SUBSCRIPTION.NOT_PREMIUM_USER');
+        return null;
+      }
+
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: { userType: UserType.Standard }, 
+        },
+        { new: true },
+      );
+
+      return updatedUser;
+    } catch (error) {
+      console.error('CANCEL_SUBSCRIPTION.', error);
       return null;
     }
   }

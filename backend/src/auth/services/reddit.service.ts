@@ -1,8 +1,7 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
-import { JwtService } from '@nestjs/jwt';
 import { SocialMediaCredentialsDto } from '../dto/social-media-credentials.dto';
 import axios from 'axios';
 import { SocialAccessToken } from '../dto/social-access-token.dto';

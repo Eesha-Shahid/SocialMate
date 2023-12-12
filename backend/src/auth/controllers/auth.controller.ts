@@ -19,6 +19,9 @@ import { DeleteCardDto } from 'src/card/dto/delete-card.dto';
 import { OAuth2Client } from 'google-auth-library';
 import { Roles } from '../roles.decorator';
 import { UserType } from 'src/common/enums/users.enum';
+import { SavePaymentDto } from 'src/payments/dto/save-payment.dto';
+import { CardInfoDto } from 'src/payments/dto/cardInfo.dto';
+import { UpdateCardDto } from 'src/card/dto/update-card.dto';
 
 
 const client = new OAuth2Client(
@@ -124,10 +127,34 @@ export class AuthController {
     return await this.authService.deleteCard(req.user.id, deleteCardDto)
   }
 
+  @Patch('set-default-card')
+  @Roles(UserType.Standard, UserType.Premium)
+  async setDefaultCard(@Req() req, @Body() updateCardDto: UpdateCardDto) {
+    return this.authService.setDefaultCard(req.user.id, updateCardDto);
+  }
+
   @Get('cards')
   @Roles(UserType.Standard, UserType.Premium)
   async fetchCards(@Req() req){
     return await this.authService.viewCards(req.user.id)
+  }
+
+  @Patch('subscribe')
+  @Roles(UserType.Standard, UserType.Premium)
+  async subscribe(@Req() req){
+    return await this.authService.subscribe(req.user.id, req.user.stripeCustomerId)
+  }
+
+  @Get('payments')
+  @Roles(UserType.Standard, UserType.Premium)
+  async getPayments(@Req() req){
+    return this.authService.getPayments(req.user.id);
+  }
+
+  @Patch('unsubscribe')
+  @Roles(UserType.Standard, UserType.Premium)
+  async cancelSubscription(@Req() req){
+    return await this.authService.cancelSubscription(req.user.id);
   }
 
 

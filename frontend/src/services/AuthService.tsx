@@ -9,6 +9,7 @@ class AuthService {
   async login(email: string, password: string) {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password, });
+      console.log(response.data.token)
       return response.data;
     } catch (error) {
       throw new Error('Sign-in failed');

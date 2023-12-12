@@ -1,5 +1,4 @@
 'use client'
-import useUser from "@/hooks/useUser";
 import UserService from "@/services/UserService";
 import { CardInfomration } from "@/types/User";
 import { hasCookie } from "cookies-next";
@@ -26,29 +25,61 @@ const CardInformation = () => {
         };
     
         fetchData();
-    }, []);    
+    }, []); 
+    
+    const handleSetDefault = async (cardId: string) => {
+      try {
+        await UserService.setDefaultCard(cardId)
+        const updatedCards = await UserService.getCardInformation();
+        setCards(updatedCards);
+      } catch (error) {
+        console.error('Error setting default card:', error);
+      }
+    };
+
+    const handleDeleteCard = async (cardId: string) => {
+      try {
+        await UserService.deleteCardInformation(cardId)
+        const updatedCards = await UserService.getCardInformation();
+        setCards(updatedCards);
+        window.location.reload()
+      } catch (error) {
+        console.error('Error deleting card:', error);
+      }
+    };
 
     return (
-    <div>
-      <h1>Your Cards</h1>
-      <Link href="/subscriptions/add-card">
-        <button style={buttonStyle}>Add Card</button>
-      </Link>
-      {cards.length > 0 ? (
-        <ul style={cardListStyle}>
-          {cards.map((card, index) => (
-            <li key={index} style={cardItemStyle}>
-              <p><strong>Expiration Date:</strong> {card.expMonth}/{card.expYear}</p>
-              <p><strong>CVC:</strong> {card.cvc}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No cards available.</p>
-      )}
-    </div>
-  );
-};
+      <div>
+        <h1>Your Cards</h1>
+        <Link href="/subscriptions/add-card">
+          <button style={buttonStyle}>Add Card</button>
+        </Link>
+        {cards.length > 0 ? (
+          <ul style={cardListStyle}>
+            {cards.map((card, index) => (
+              <li key={index} style={cardItemStyle}>
+                <p><strong>Card Number:</strong> {card.cardNumber}</p>
+                <p><strong>Expiration Date:</strong> {card.expMonth}/{card.expYear}</p>
+                <p><strong>CVC:</strong> {card.cvc}</p>
+                {card.default ? (
+                  <div style={defaultButtonStyle}><strong>Default Card</strong></div>
+                ) : (
+                  <button onClick={() => handleSetDefault(card._id.toString())} style={cardButtonStyle}>
+                    Set Default
+                  </button>
+                )}
+                <button onClick={() => handleDeleteCard(card._id.toString())} style={cardButtonStyle}>
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No cards available.</p>
+        )}
+      </div>
+    );
+  };
 
 const buttonStyle: React.CSSProperties = {
   backgroundColor: 'black',
@@ -75,6 +106,24 @@ const cardItemStyle = {
   margin: '8px 0',
   padding: '10px',
   // Add more styles as needed
+};
+
+const defaultButtonStyle: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: 'green',
+  color: 'white',
+  padding: '5px 10px',
+  borderRadius: '5px',
+  marginRight: '1rem',
+  fontSize: '1rem'
+}
+
+const cardButtonStyle: React.CSSProperties = {
+  padding: '5px 10px',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  marginRight: '1rem',
+  fontSize: '1.2rem'
 };
 
 export default CardInformation;

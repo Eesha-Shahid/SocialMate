@@ -1,15 +1,24 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { SchemaTypes } from "mongoose";
-import { User } from "../../auth/schemas/user.schema";
 
-@Schema()
-export class Payment{
+@Schema({ timestamps: true })
+export class Payment {
+
+    [x: string]: any;
     
-    @Prop({ type: SchemaTypes.ObjectId, ref: 'User' })
-    user: User;
+    @Prop()
+    card: string;
 
     @Prop()
-    amount: number;
+    amount: Number;
+
+    @Prop()
+    created: Number
+
+    @Prop()
+    currency: String
+
+    @Prop()
+    payment_method: String
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

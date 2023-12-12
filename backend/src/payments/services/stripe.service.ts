@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { Payment } from '../schemas/payment.schema';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { User } from '../../auth/schemas/user.schema';
+import { SavePaymentDto } from '../dto/save-payment.dto';
  
 @Injectable()
 export class StripeService {
@@ -72,9 +73,34 @@ export class StripeService {
   
       return res;
     }
+
+    async createPaymentIntent(cusomterID: string){
+        const paymentIntent = await this.stripe.paymentIntents.create({
+            amount: 250,
+            currency: 'usd',
+            customer: cusomterID,
+            automatic_payment_methods: {
+                enabled: true,
+                allow_redirects: 'never',
+            },
+            payment_method: "pm_card_visa"
+        })
+        return paymentIntent.id
+    }
+
+    async confirmCardPayment(clientSecret: string) {
+        const paymentIntent = await this.stripe.paymentIntents.confirm(clientSecret, {
+            payment_method: "pm_card_visa",
+        });
+        return paymentIntent;
+    }
   
     async deleteMany(user: User) {
       await this.paymentModel.deleteMany({ user: user._id._id.toString() });
       return { message: "Payment Deleted" }
+    }
+
+    async savePayment(savePaymentDto: SavePaymentDto): Promise<Payment | null>{
+        return await this.paymentModel.create(savePaymentDto)
     }
 }
